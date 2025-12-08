@@ -1,58 +1,16 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 import { registerRootComponent } from "expo";
-import { goTo, useData } from "./centralData";
-import Chat from "./screens/chat";
-import Home from "./screens/home";
+import { useData } from "./centralData";
+import { ActiveScreen } from "./centralData/router";
 
 const App = () => {
-  const title = useData((ct) => ct.screens.A0.statics.title);
   const currentRoute = useData((ct) => ct.router.current);
-
-  const screens = {
-    home: Home,
-    chat: Chat,
-  } as const;
-
-  const ActiveScreen = screens[currentRoute] ?? Home;
-
+  
   return (
     <View style={styles.container}>
-      <View style={styles.nav}>
-        <TouchableOpacity
-          style={[
-            styles.navButton,
-            currentRoute === "home" && styles.navButtonActive,
-          ]}
-          onPress={() => goTo("home")}
-        >
-          <Text
-            style={[
-              styles.navLabel,
-              currentRoute === "home" && styles.navLabelActive,
-            ]}
-          >
-            Home
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.navButton,
-            currentRoute === "chat" && styles.navButtonActive,
-          ]}
-          onPress={() => goTo("chat")}
-        >
-          <Text
-            style={[
-              styles.navLabel,
-              currentRoute === "chat" && styles.navLabelActive,
-            ]}
-          >
-            Chat
-          </Text>
-        </TouchableOpacity>
-      </View>
+
       <ActiveScreen />
     </View>
   );

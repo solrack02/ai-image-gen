@@ -1,3 +1,8 @@
+import { screens } from "./router";
+
+export type RouteName = keyof typeof screens;
+const routes = Object.keys(screens) as RouteName[];
+
 export const initialState = {
   screens: {
     A0: {
@@ -8,7 +13,7 @@ export const initialState = {
   },
   system: {},
   router: {
-    current: "home",
-    routes: ["home", "chat"],
+    current: routes[0] as RouteName,
+    routes,
   },
 };
