@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import {
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 const galleryItems = [
@@ -30,22 +29,9 @@ export const Home = () => {
     <View style={styles.page}>
       <View style={styles.navbar}>
         <View style={styles.logoRow}>
-          <Image source={logoSource} style={styles.logoImg} />
+          {/* <Image source={logoSource} style={styles.logoImg} /> */}
           <Text style={styles.logo}>fissium</Text>
-        </View>
-        <TouchableOpacity style={styles.loginButton}>
-          <Text style={styles.loginText}>Entrar</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.hero}>
-        <View
-          style={[
-            styles.sidebar,
-            collapsed && styles.sidebarCollapsed,
-          ]}
-        >
-          {/* <Pressable
+          <Pressable
             style={({ hovered, pressed }) => [
               styles.sidebarToggle,
               (hovered || pressed) && styles.sidebarToggleHover,
@@ -53,13 +39,20 @@ export const Home = () => {
             onPress={() => setCollapsed((prev) => !prev)}
           >
             <Text style={styles.sidebarToggleText}>
-              {collapsed ? ">" : "<"}
+              {collapsed ? "◧" : "◨"}
             </Text>
-          </Pressable> */}
+          </Pressable>
+        </View>
+        <TouchableOpacity style={styles.loginButton}>
+          <Text style={styles.loginText}>Entrar</Text>
+        </TouchableOpacity>
+      </View>
 
+      <View style={styles.hero}>
+        <View style={[styles.sidebar, collapsed && styles.sidebarCollapsed]}>
           {!collapsed && (
             <>
-              {/* <Text style={styles.sidebarTitle}>Explorar</Text> */}
+              <Text style={styles.sidebarTitle}>Explorar</Text>
               {menuItems.map((item) => (
                 <Pressable key={item}>
                   {({ hovered, pressed }) => {
@@ -75,7 +68,9 @@ export const Home = () => {
                         <Text
                           style={[
                             styles.chevron,
-                            active ? styles.chevronVisible : styles.chevronHidden,
+                            active
+                              ? styles.chevronVisible
+                              : styles.chevronHidden,
                           ]}
                         >
                           ›
@@ -142,6 +137,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     letterSpacing: 0.5,
+    marginBottom: 5,
+    marginLeft: 10
   },
   loginButton: {
     paddingHorizontal: 14,
@@ -170,22 +167,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   sidebarToggle: {
-    width: "100%",
-    height: 40,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#1f2937",
-    backgroundColor: "#0d1117",
+    width: 26,
+    height: 26,
+    // borderRadius: 3,
+    // borderWidth: 1,
+    // borderColor: "#1f2937",
+    // backgroundColor: "#030606",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 10,
+    opacity: .8
   },
   sidebarToggleHover: {
-    backgroundColor: "#1f2937",
+    // backgroundColor: "#0b0e10ff",
+    opacity: 1
   },
   sidebarToggleText: {
     color: "#e5e7eb",
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "700",
   },
   sidebarTitle: {
@@ -204,7 +202,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   sidebarItemHover: {
-    backgroundColor: "#060606",
+    backgroundColor: "#080808",
   },
   sidebarItemText: {
     color: "#e5e7eb",
@@ -213,7 +211,7 @@ const styles = StyleSheet.create({
   },
   chevron: {
     color: "#9ca3af",
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "700",
     marginLeft: 8,
   },
