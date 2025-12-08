@@ -1,20 +1,50 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 const galleryItems = [
-  { id: "1", title: "Dreamscape", color: "#1f2937" },
-  { id: "2", title: "Neon Portrait", color: "#0f172a" },
-  { id: "3", title: "Surreal Garden", color: "#111827" },
-  { id: "4", title: "Futuristic City", color: "#1e293b" },
-  { id: "5", title: "Abstract Forms", color: "#0b1324" },
-  { id: "6", title: "Cosmic Bloom", color: "#101827" },
+  {
+    id: "1",
+    uri: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
+    tall: true,
+  },
+  {
+    id: "2",
+    uri: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    id: "3",
+    uri: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1200&q=80",
+    tall: true,
+  },
+  {
+    id: "4",
+    uri: "https://images.unsplash.com/photo-1504600770771-fb03a6961d33?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    id: "5",
+    uri: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    id: "6",
+    uri: "https://images.unsplash.com/photo-1527529482837-4698179dc6ce?auto=format&fit=crop&w=1200&q=80",
+    tall: true,
+  },
+  {
+    id: "7",
+    uri: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    id: "8",
+    uri: "https://images.unsplash.com/photo-1504890001746-a9b7c7a2a0f2?auto=format&fit=crop&w=1200&q=80",
+  },
 ];
 
 const menuItems = ["Descubra", "Colecoes", "Artistas", "Favoritos"];
@@ -24,6 +54,12 @@ export const Home = () => {
   const logoSource = {
     uri: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAhMBgQfXlwQAAAAASUVORK5CYII=",
   };
+  const columns = useMemo(() => {
+    const colCount = 3;
+    return Array.from({ length: colCount }, (_, col) =>
+      galleryItems.filter((_, idx) => idx % colCount === col)
+    );
+  }, []);
 
   return (
     <View style={styles.page}>
@@ -86,17 +122,30 @@ export const Home = () => {
 
         <ScrollView
           horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.gallery}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.galleryContent}
         >
-          {galleryItems.map((card) => (
-            <View
-              key={card.id}
-              style={[styles.card, { backgroundColor: card.color }]}
-            >
-              <Text style={styles.cardTitle}>{card.title}</Text>
-            </View>
-          ))}
+          {/* <View style={styles.galleryHeader}>
+            <Text style={styles.galleryTitle}>Platform Gallery</Text>
+          </View> */}
+          <View style={styles.galleryGrid}>
+            {columns.map((items, idx) => (
+              <View key={idx} style={styles.galleryColumn}>
+                {items.map((card) => (
+                  <View
+                    key={card.id}
+                    style={[styles.card, card.tall && styles.cardTall]}
+                  >
+                    <Image
+                      source={{ uri: card.uri }}
+                      style={styles.cardImage}
+                      resizeMode="cover"
+                    />
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
         </ScrollView>
       </View>
 
@@ -138,7 +187,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     letterSpacing: 0.5,
     marginBottom: 5,
-    marginLeft: 10
+    marginLeft: 10,
   },
   loginButton: {
     paddingHorizontal: 14,
@@ -175,11 +224,11 @@ const styles = StyleSheet.create({
     // backgroundColor: "#030606",
     alignItems: "center",
     justifyContent: "center",
-    opacity: .8
+    opacity: 0.8,
   },
   sidebarToggleHover: {
     // backgroundColor: "#0b0e10ff",
-    opacity: 1
+    opacity: 1,
   },
   sidebarToggleText: {
     color: "#e5e7eb",
@@ -226,18 +275,55 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   card: {
-    width: 200,
-    height: 260,
-    borderRadius: 16,
+    width: 300,
+    height: 280,
+    // borderRadius: 16,
     justifyContent: "flex-end",
-    padding: 16,
-    borderWidth: 1,
-    borderColor: "#111827",
+    padding: 10,
+    // borderWidth: 1,
+    // borderColor: "#000000",
+    // #b52b00
+    // #0010b5
+    // #b9275c
   },
   cardTitle: {
     color: "#f9fafb",
     fontSize: 16,
     fontWeight: "700",
+  },
+   galleryContent: {
+    paddingHorizontal: 4,
+    paddingBottom: 24,
+  },
+  galleryHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 16,
+  },
+  galleryTitle: {
+    color: "#c084fc",
+    fontSize: 20,
+    fontWeight: "800",
+  },
+  galleryBadge: {
+    fontSize: 18,
+    color: "#c084fc",
+  },
+  galleryGrid: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  galleryColumn: {
+    flex: 1,
+    gap: 12,
+  },
+  cardTall: {
+    height: 150,
+  },
+  cardImage: {
+    width: "100%",
+    height: "100%",
   },
   footer: {
     marginTop: 20,
