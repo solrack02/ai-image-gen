@@ -1,13 +1,9 @@
-import { registerRootComponent } from 'expo';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import Chat from './screens/chat';
-import Home from './screens/home';
+import { StyleSheet, Text, View } from 'react-native';
 
-const App = () => (
+export const Home = () => (
   <View style={styles.container}>
-    <Home />
-    <Chat />
+    <Text style={styles.title}>Home</Text>
   </View>
 );
 
@@ -25,6 +21,4 @@ const styles = StyleSheet.create({
   },
 });
 
-registerRootComponent(App);
-
-export default App;
+export default Home;
