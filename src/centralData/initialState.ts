@@ -1,7 +1,4 @@
-import { screens } from "./router";
-
-export type RouteName = keyof typeof screens;
-const routes = Object.keys(screens) as RouteName[];
+import { routes, RouteName } from "./screens";
 
 export const initialState = {
   screens: {

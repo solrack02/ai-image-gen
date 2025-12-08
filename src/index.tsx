@@ -2,15 +2,13 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 
 import { registerRootComponent } from "expo";
-import { useData } from "./centralData";
 import { ActiveScreen } from "./centralData/router";
 
 const App = () => {
-  const currentRoute = useData((ct) => ct.router.current);
+
   
   return (
     <View style={styles.container}>
-
       <ActiveScreen />
     </View>
   );
