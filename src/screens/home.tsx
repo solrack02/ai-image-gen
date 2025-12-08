@@ -119,7 +119,7 @@ export const Home = () => {
             </>
           )}
         </View>
-
+<View style={styles.galleryShell}>
         <ScrollView
           horizontal
           showsVerticalScrollIndicator={false}
@@ -147,6 +147,8 @@ export const Home = () => {
             ))}
           </View>
         </ScrollView>
+      </View>
+
       </View>
 
       <View style={styles.footer}>
@@ -324,6 +326,10 @@ const styles = StyleSheet.create({
   cardImage: {
     width: "100%",
     height: "100%",
+  },
+    galleryShell: {
+    flex: 1,
+    alignItems: "center",
   },
   footer: {
     marginTop: 20,
