@@ -7,4 +7,8 @@ export const initialState = {
     },
   },
   system: {},
+  router: {
+    current: "home",
+    routes: ["home", "chat"],
+  },
 };
