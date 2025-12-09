@@ -1,24 +1,41 @@
-import React from "react";
+import React, { useState } from "react";
 import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { goTo } from "@/src/centralData";
+import { requestImages } from "../../../actions";
 import { styles } from "./styles";
 
 const logoSource = require("../../../assets/animated_logo.gif");
 
-export const Chat = () => (
-  <View style={styles.container}>
-    <Text style={styles.title}>Whats Next?</Text>
-    <View style={styles.inputRow}>
-      <TextInput style={styles.bigInput} />
-      <TouchableOpacity
-        style={styles.chatButton}
-        onPress={() => goTo("editor")}
-      >
-        {/* <Text style={styles.chatText}>Criar</Text> */}
-        <Image source={logoSource} style={styles.animatedGif} />
-      </TouchableOpacity>
+export const Chat = () => {
+  const [prompt, setPrompt] = useState("");
+
+  const handleCreate = async () => {
+    try {
+      await requestImages({ prompt: prompt || "Explorar novas variações" });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      goTo("editor");
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Whats Next?</Text>
+      <View style={styles.inputRow}>
+        <TextInput
+          style={styles.bigInput}
+          value={prompt}
+          onChangeText={setPrompt}
+          placeholder="Descreva o que quer gerar..."
+          placeholderTextColor="#6b7280"
+        />
+        <TouchableOpacity style={styles.chatButton} onPress={handleCreate}>
+          <Image source={logoSource} style={styles.animatedGif} />
+        </TouchableOpacity>
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 export default Chat;

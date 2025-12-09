@@ -1,4 +1,5 @@
-import React from "react";
+import { requestImages } from "@/actions";
+import React, { useState } from "react";
 import {
   Image,
   ScrollView,
@@ -13,21 +14,33 @@ const mockPreviews = [
   {
     id: "1",
     uri: "https://images.unsplash.com/photo-1473186578172-c141e6798cf4?auto=format&fit=crop&w=800&q=80",
-    caption: "Explorar cores e formas orgânicas",
+    caption: "Explorar cores e formas organicas",
   },
   {
     id: "2",
     uri: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=800&q=80",
-    caption: "Iluminação suave e textura granular",
+    caption: "Iluminacao suave e textura granular",
   },
   {
     id: "3",
     uri: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=800&q=80",
-    caption: "Composição minimalista, alto contraste",
+    caption: "Composicao minimalista, alto contraste",
   },
 ];
 
 const Editor = () => {
+  const [prompt, setPrompt] = useState(
+    "um estilo minimalista com cores suaves e foco em composicao limpa"
+  );
+
+  const handleGenerate = async () => {
+    try {
+      await requestImages({ prompt });
+    } catch (error) {
+      console.error("Falha ao gerar imagens", error);
+    }
+  };
+
   return (
     <View style={styles.page}>
       <View style={styles.header}>
@@ -39,22 +52,25 @@ const Editor = () => {
           <TouchableOpacity style={styles.ghostButton}>
             <Text style={styles.ghostButtonText}>Galeria</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.primaryButton}>
+          <TouchableOpacity style={styles.primaryButton} onPress={handleGenerate}>
             <Text style={styles.primaryButtonText}>Gerar</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.body}>
-        <ScrollView style={styles.sidebar} contentContainerStyle={styles.sidebarContent}>
-          <Text style={styles.sectionTitle}>Configurações</Text>
+        <ScrollView
+          style={styles.sidebar}
+          contentContainerStyle={styles.sidebarContent}
+        >
+          <Text style={styles.sectionTitle}>Configuracoes</Text>
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Modelo</Text>
             <Text style={styles.cardHint}>Fissium Vision 3</Text>
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Proporção</Text>
+            <Text style={styles.cardTitle}>Proporcao</Text>
             <View style={styles.badgeRow}>
               <Text style={[styles.badge, styles.badgeActive]}>1:1</Text>
               <Text style={styles.badge}>3:4</Text>
@@ -63,19 +79,23 @@ const Editor = () => {
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Tipo de conteúdo</Text>
+            <Text style={styles.cardTitle}>Tipo de conteudo</Text>
             <View style={styles.toggleRow}>
               <Text style={[styles.toggle, styles.toggleActive]}>Arte</Text>
               <Text style={styles.toggle}>Foto</Text>
-              <Text style={styles.toggle}>Esboço</Text>
+              <Text style={styles.toggle}>Esboco</Text>
             </View>
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Referências</Text>
+            <Text style={styles.cardTitle}>Referencias</Text>
             <View style={styles.referenceGrid}>
               {mockPreviews.slice(0, 4).map((item) => (
-                <Image key={item.id} source={{ uri: item.uri }} style={styles.referenceThumb} />
+                <Image
+                  key={item.id}
+                  source={{ uri: item.uri }}
+                  style={styles.referenceThumb}
+                />
               ))}
             </View>
             <TouchableOpacity style={styles.linkButton}>
@@ -86,10 +106,8 @@ const Editor = () => {
 
         <View style={styles.main}>
           <View style={styles.promptBox}>
-            <Text style={styles.promptLabel}>Solicitação</Text>
-            <Text style={styles.promptText}>
-              um estilo minimalista com cores suaves e foco em composição limpa
-            </Text>
+            <Text style={styles.promptLabel}>Solicitacao</Text>
+            <Text style={styles.promptText}>{prompt}</Text>
           </View>
 
           <View style={styles.previewGrid}>
@@ -108,11 +126,13 @@ const Editor = () => {
 
           <View style={styles.commandBar}>
             <TextInput
-              placeholder="Descreva a próxima variação..."
+              placeholder="Descreva a proxima variacao..."
               placeholderTextColor="#6b7280"
               style={styles.promptInput}
+              value={prompt}
+              onChangeText={setPrompt}
             />
-            <TouchableOpacity style={styles.primaryButton}>
+            <TouchableOpacity style={styles.primaryButton} onPress={handleGenerate}>
               <Text style={styles.primaryButtonText}>Gerar</Text>
             </TouchableOpacity>
           </View>
