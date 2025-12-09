@@ -44,8 +44,14 @@ export const styles = StyleSheet.create({
     backgroundColor: palette.text,
     // borderWidth: 1,
     // borderColor: palette.border,
+    position: "absolute",
+    right: 10
   },
   chatText: {
     color: palette.canvas,
+  },
+  animatedGif: {
+    width: 26,
+    height: 26,
   },
 });
