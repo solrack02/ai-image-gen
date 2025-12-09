@@ -1,12 +1,17 @@
-import React from "react";
-import { StyleSheet, View } from "react-native";
+import React, { useEffect } from "react";
+import { Platform, StyleSheet, View } from "react-native";
 
 import { registerRootComponent } from "expo";
 import { ActiveScreen } from "./centralData/router";
 
 const App = () => {
 
-  
+  useEffect(() => {
+    if (Platform.OS === "web") {
+      document.title = "Fissium | AI";
+    }
+  }, []);
+
   return (
     <View style={styles.container}>
       <ActiveScreen />
