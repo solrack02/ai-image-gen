@@ -51,9 +51,7 @@ const menuItems = ["Descubra", "Colecoes", "Artistas", "Favoritos"];
 
 export const Home = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const logoSource = {
-    uri: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAhMBgQfXlwQAAAAASUVORK5CYII=",
-  };
+  const logoSource = require("../../../assets/logo3.png");
   const columns = useMemo(() => {
     const colCount = 3;
     return Array.from({ length: colCount }, (_, col) =>
@@ -65,7 +63,7 @@ export const Home = () => {
     <View style={styles.page}>
       <View style={styles.navbar}>
         <View style={styles.logoRow}>
-          {/* <Image source={logoSource} style={styles.logoImg} /> */}
+          <Image source={logoSource} style={styles.logoImg} />
           <Text style={styles.logo}>fissium</Text>
           <Pressable
             style={({ hovered, pressed }) => [
@@ -88,7 +86,7 @@ export const Home = () => {
         <View style={[styles.sidebar, collapsed && styles.sidebarCollapsed]}>
           {!collapsed && (
             <>
-              <Text style={styles.sidebarTitle}>Explorar</Text>
+              {/* <Text style={styles.sidebarTitle}>Explorar</Text> */}
               {menuItems.map((item) => (
                 <Pressable key={item}>
                   {({ hovered, pressed }) => {
@@ -125,10 +123,10 @@ export const Home = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.galleryContent}
         >
+          <View style={styles.galleryGrid}>
           {/* <View style={styles.galleryHeader}>
             <Text style={styles.galleryTitle}>Platform Gallery</Text>
           </View> */}
-          <View style={styles.galleryGrid}>
             {columns.map((items, idx) => (
               <View key={idx} style={styles.galleryColumn}>
                 {items.map((card) => (

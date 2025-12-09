@@ -17,6 +17,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 24,
+    paddingHorizontal: 20
   },
   logoRow: {
     flexDirection: "row",
@@ -31,11 +32,11 @@ export const styles = StyleSheet.create({
   },
   logo: {
     color: palette.text,
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "700",
     letterSpacing: 0.5,
-    marginBottom: 5,
-    marginLeft: 10,
+    // marginBottom: 5,
+    // marginLeft: 10,
     fontFamily: fontRounded,
   },
   loginButton: {
@@ -74,7 +75,7 @@ export const styles = StyleSheet.create({
     // backgroundColor: "#030606",
     alignItems: "center",
     justifyContent: "center",
-    opacity: 0.8,
+    opacity: 0.2,
   },
   sidebarToggleHover: {
     // backgroundColor: "#0b0e10ff",
