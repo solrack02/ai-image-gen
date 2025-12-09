@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+﻿import React, { useMemo, useState } from "react";
 import {
   Image,
   Pressable,
@@ -117,36 +117,52 @@ export const Home = () => {
             </>
           )}
         </View>
-<View style={styles.galleryShell}>
-        <ScrollView
-          horizontal
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.galleryContent}
-        >
-          <View style={styles.galleryGrid}>
-          {/* <View style={styles.galleryHeader}>
+
+        <View style={styles.heroMain}>
+          <View style={styles.heroCopy}>
+            <Text style={styles.heroKicker}>Investigações</Text>
+            <Text style={styles.heroTitle}>FISSIUM 3</Text>
+            <Text style={styles.heroSubtitle}>
+              O FISSIUM 3 compreende significativamente mais nuances e detalhes
+              do que nossos sistemas anteriores, permitindo que você converta
+              facilmente suas ideias em imagens excepcionalmente precisas.
+            </Text>
+
+            <TouchableOpacity style={styles.testButton}>
+              <Text style={styles.loginText}>Testar Grátis  ⇢</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.galleryShell}>
+            <ScrollView
+              horizontal
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.galleryContent}
+            >
+              <View style={styles.galleryGrid}>
+                {/* <View style={styles.galleryHeader}>
             <Text style={styles.galleryTitle}>Platform Gallery</Text>
           </View> */}
-            {columns.map((items, idx) => (
-              <View key={idx} style={styles.galleryColumn}>
-                {items.map((card) => (
-                  <View
-                    key={card.id}
-                    style={[styles.card, card.tall && styles.cardTall]}
-                  >
-                    <Image
-                      source={{ uri: card.uri }}
-                      style={styles.cardImage}
-                      resizeMode="cover"
-                    />
+                {columns.map((items, idx) => (
+                  <View key={idx} style={styles.galleryColumn}>
+                    {items.map((card) => (
+                      <View
+                        key={card.id}
+                        style={[styles.card, card.tall && styles.cardTall]}
+                      >
+                        <Image
+                          source={{ uri: card.uri }}
+                          style={styles.cardImage}
+                          resizeMode="cover"
+                        />
+                      </View>
+                    ))}
                   </View>
                 ))}
               </View>
-            ))}
+            </ScrollView>
           </View>
-        </ScrollView>
-      </View>
-
+        </View>
       </View>
 
       <View style={styles.footer}>

@@ -44,8 +44,16 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 999,
     backgroundColor: palette.elevated,
-    borderWidth: 1,
-    borderColor: palette.border,
+    // borderWidth: 1,
+    // borderColor: palette.border,
+  },
+  testButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    // backgroundColor: palette.elevated,
+    borderWidth: 2,
+    borderColor: palette.tabIconSelected,
   },
   loginText: {
     color: palette.text,
@@ -57,6 +65,38 @@ export const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     gap: 16,
+  },
+  heroMain: {
+    flex: 1,
+    alignItems: "center",
+  },
+  heroCopy: {
+    alignItems: "center",
+    gap: 10,
+    marginBottom: 100,
+    paddingHorizontal: 24,
+  },
+  heroKicker: {
+    // color: palette.secondaryText,
+    color: palette.text,
+    fontSize: 12,
+    letterSpacing: 0.4,
+    fontFamily: fontSans,
+  },
+  heroTitle: {
+    color: palette.text,
+    fontSize: 42,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    fontFamily: fontRounded,
+  },
+  heroSubtitle: {
+    color: palette.text,
+    fontSize: 16,
+    textAlign: "center",
+    lineHeight: 24,
+    maxWidth: 900,
+    fontFamily: fontSans,
   },
   sidebar: {
     width: 160,
@@ -186,6 +226,7 @@ export const styles = StyleSheet.create({
   galleryShell: {
     flex: 1,
     alignItems: "center",
+    width: "100%",
   },
   footer: {
     marginTop: 20,
