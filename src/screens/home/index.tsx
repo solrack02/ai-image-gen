@@ -1,4 +1,5 @@
-﻿import React, { useMemo, useState } from "react";
+﻿import { goTo } from "@/src/centralData";
+import React, { useMemo, useState } from "react";
 import {
   Image,
   Pressable,
@@ -128,7 +129,7 @@ export const Home = () => {
               facilmente suas ideias em imagens excepcionalmente precisas.
             </Text>
 
-            <TouchableOpacity style={styles.testButton}>
+            <TouchableOpacity style={styles.testButton} onPress={() => goTo("chat")}>
               <Text style={styles.loginText}>Testar Grátis  ⇢</Text>
             </TouchableOpacity>
           </View>
