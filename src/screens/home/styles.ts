@@ -6,6 +6,10 @@ const fontSans = Fonts.sans;
 const fontRounded = Fonts.rounded;
 
 export const styles = StyleSheet.create({
+  bigInput: {
+    borderBottomColor: palette.canvas,
+    borderBottomWidth: 2
+  },
   page: {
     flex: 1,
     backgroundColor: palette.canvas,
