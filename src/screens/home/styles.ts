@@ -1,9 +1,14 @@
 import { StyleSheet } from "react-native";
+import { Colors, Fonts } from "../../../constants/theme";
+
+const palette = Colors.dark;
+const fontSans = Fonts.sans;
+const fontRounded = Fonts.rounded;
 
 export const styles = StyleSheet.create({
   page: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: palette.canvas,
     paddingTop: 22,
     paddingHorizontal: 10,
   },
@@ -22,28 +27,30 @@ export const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 10,
-    backgroundColor: "#0f172a",
+    backgroundColor: palette.divider,
   },
   logo: {
-    color: "#fff",
+    color: palette.text,
     fontSize: 20,
     fontWeight: "700",
     letterSpacing: 0.5,
     marginBottom: 5,
     marginLeft: 10,
+    fontFamily: fontRounded,
   },
   loginButton: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: "#1f2937",
+    backgroundColor: palette.elevated,
     borderWidth: 1,
-    borderColor: "#30363d",
+    borderColor: palette.border,
   },
   loginText: {
-    color: "#fff",
+    color: palette.text,
     fontSize: 14,
     fontWeight: "600",
+    fontFamily: fontSans,
   },
   hero: {
     flex: 1,
@@ -74,15 +81,17 @@ export const styles = StyleSheet.create({
     opacity: 1,
   },
   sidebarToggleText: {
-    color: "#e5e7eb",
+    color: palette.text,
     fontSize: 14,
     fontWeight: "700",
+    fontFamily: fontSans,
   },
   sidebarTitle: {
-    color: "#9ca3af",
+    color: palette.secondaryText,
     fontSize: 12,
     letterSpacing: 0.4,
     marginBottom: 12,
+    fontFamily: fontSans,
   },
   sidebarItem: {
     paddingVertical: 6,
@@ -94,18 +103,20 @@ export const styles = StyleSheet.create({
     marginBottom: 6,
   },
   sidebarItemHover: {
-    backgroundColor: "#080808",
+    backgroundColor: palette.overlay,
   },
   sidebarItemText: {
-    color: "#e5e7eb",
+    color: palette.text,
     fontSize: 14,
     fontWeight: "600",
+    fontFamily: fontSans,
   },
   chevron: {
-    color: "#9ca3af",
+    color: palette.secondaryText,
     fontSize: 14,
     fontWeight: "700",
     marginLeft: 8,
+    fontFamily: fontSans,
   },
   chevronHidden: {
     opacity: 0,
@@ -130,9 +141,10 @@ export const styles = StyleSheet.create({
     // #b9275c
   },
   cardTitle: {
-    color: "#f9fafb",
+    color: palette.text,
     fontSize: 16,
     fontWeight: "700",
+    fontFamily: fontSans,
   },
   galleryContent: {
     paddingHorizontal: 4,
@@ -145,13 +157,15 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
   },
   galleryTitle: {
-    color: "#c084fc",
+    color: palette.accent,
     fontSize: 20,
     fontWeight: "800",
+    fontFamily: fontRounded,
   },
   galleryBadge: {
     fontSize: 18,
-    color: "#c084fc",
+    color: palette.accent,
+    fontFamily: fontRounded,
   },
   galleryGrid: {
     flexDirection: "row",
@@ -176,12 +190,13 @@ export const styles = StyleSheet.create({
     marginTop: 20,
     paddingVertical: 14,
     borderTopWidth: 1,
-    borderColor: "#111827",
+    borderColor: palette.divider,
     flexDirection: "row",
     justifyContent: "space-between",
   },
   footerText: {
-    color: "#6b7280",
+    color: palette.muted,
     fontSize: 12,
+    fontFamily: fontSans,
   },
 });
