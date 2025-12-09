@@ -8,7 +8,7 @@ type RequestImagesResult = {
 };
 
 const GEMINI_ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent";
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent";
 
 export const requestImages = async ({
   prompt,
@@ -18,33 +18,52 @@ export const requestImages = async ({
     throw new Error("EXPO_PUBLIC_GEMINI_API_KEY não configurada");
   }
 
-  const body = {
+  const buildBody = (withImage = true) => ({
     contents: [
       {
         role: "user",
         parts: [{ text: prompt }],
       },
     ],
-    generationConfig: {
-      responseMimeType: "image/png",
-      // Ajuste conforme o modelo suportar imagens (ex.: tamanho, topK, topP).
-    },
-  };
-
-  const response = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
+    ...(withImage
+      ? {
+          generationConfig: {
+            responseMimeType: "image/png",
+          },
+        }
+      : {}),
   });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Erro na chamada Gemini: ${response.status} - ${errorText}`);
+  const callGemini = async (withImage = true) => {
+    const response = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(buildBody(withImage)),
+    });
+
+    const text = await response.text();
+    if (!response.ok) {
+      throw new Error(
+        `Erro na chamada Gemini (${withImage ? "image" : "text"}): ${response.status} - ${text}`
+      );
+    }
+
+    return JSON.parse(text);
+  };
+
+  let json: any;
+  try {
+    json = await callGemini(true);
+  } catch (err: any) {
+    if (String(err?.message || "").includes("response_mime_type")) {
+      json = await callGemini(false);
+    } else {
+      throw err;
+    }
   }
 
-  const json = await response.json();
   const images =
     json?.candidates
       ?.flatMap((candidate: any) =>
