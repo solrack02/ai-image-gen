@@ -1,5 +1,6 @@
 import { requestImages } from "@/actions";
-import React, { useState } from "react";
+import { useData, setData } from "@/src/centralData";
+import React, { useMemo, useState } from "react";
 import {
   Image,
   ScrollView,
@@ -29,15 +30,36 @@ const mockPreviews = [
 ];
 
 const Editor = () => {
+  const generation = useData((ct) => ct.system.generation);
   const [prompt, setPrompt] = useState(
-    "um estilo minimalista com cores suaves e foco em composicao limpa"
+    generation.prompt ||
+      "um estilo minimalista com cores suaves e foco em composicao limpa"
   );
+  const [isLoading, setIsLoading] = useState(false);
+
+  const previews = useMemo(() => {
+    if (generation.images?.length) {
+      return generation.images.map((img, idx) => ({
+        id: `generated-${idx}`,
+        uri: `data:image/png;base64,${img}`,
+        caption: generation.prompt || `Geracao ${idx + 1}`,
+      }));
+    }
+    return mockPreviews;
+  }, [generation.images, generation.prompt]);
 
   const handleGenerate = async () => {
+    setIsLoading(true);
     try {
-      await requestImages({ prompt });
+      const { images } = await requestImages({ prompt });
+      setData((ct) => {
+        ct.system.generation.prompt = prompt;
+        ct.system.generation.images = images;
+      });
     } catch (error) {
       console.error("Falha ao gerar imagens", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -111,7 +133,7 @@ const Editor = () => {
           </View>
 
           <View style={styles.previewGrid}>
-            {mockPreviews.map((item) => (
+            {previews.map((item) => (
               <View key={item.id} style={styles.previewCard}>
                 <Image source={{ uri: item.uri }} style={styles.previewImage} />
                 <View style={styles.previewOverlay}>
@@ -132,8 +154,14 @@ const Editor = () => {
               value={prompt}
               onChangeText={setPrompt}
             />
-            <TouchableOpacity style={styles.primaryButton} onPress={handleGenerate}>
-              <Text style={styles.primaryButtonText}>Gerar</Text>
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={handleGenerate}
+              disabled={isLoading}
+            >
+              <Text style={styles.primaryButtonText}>
+                {isLoading ? "Gerando..." : "Gerar"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { goTo } from "@/src/centralData";
+import { goTo, setData } from "@/src/centralData";
 import { requestImages } from "../../../actions";
 import { styles } from "./styles";
 
@@ -10,8 +10,13 @@ export const Chat = () => {
   const [prompt, setPrompt] = useState("");
 
   const handleCreate = async () => {
+    const safePrompt = prompt || "Explorar novas variacoes";
     try {
-      await requestImages({ prompt: prompt || "Explorar novas variações" });
+      const { images } = await requestImages({ prompt: safePrompt });
+      setData((ct) => {
+        ct.system.generation.prompt = safePrompt;
+        ct.system.generation.images = images;
+      });
     } catch (err) {
       console.error(err);
     } finally {

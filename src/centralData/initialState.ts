@@ -8,7 +8,12 @@ export const initialState = {
       },
     },
   },
-  system: {},
+  system: {
+    generation: {
+      prompt: "",
+      images: [] as string[],
+    },
+  },
   router: {
     current: routes[0] as RouteName,
     routes,
