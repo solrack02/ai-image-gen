@@ -8,9 +8,10 @@ type RequestImagesResult = {
   raw: any;
 };
 
-// Image generation uses the Imagen endpoint, not Gemini generateContent.
-const IMAGE_MODEL = "imagegeneration";
-const IMAGE_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:generateImages`;
+// Imagen 4 runs through the `predict` endpoint.
+// Fast tier keeps latency/cost lower while we experiment.
+const IMAGE_MODEL = "imagen-4.0-fast-generate-001";
+const IMAGE_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${IMAGE_MODEL}:predict`;
 
 export const requestImages = async ({
   prompt,
@@ -18,18 +19,26 @@ export const requestImages = async ({
 }: RequestImagesParams): Promise<RequestImagesResult> => {
   const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
   if (!apiKey) {
-    throw new Error("EXPO_PUBLIC_GEMINI_API_KEY não configurada");
+    throw new Error("EXPO_PUBLIC_GEMINI_API_KEY nao configurada");
   }
 
   const body = {
-    prompt: { text: prompt },
-    // Some models ignore aspect_ratio; still send a sane default.
-    aspectRatio,
-  };
+    // Predict expects the prompt as a plain string.
+    instances: [{ prompt }],
+    parameters: {
+      // sampleCount 1 keeps costs down; adjust if you need variations.
+      sampleCount: 1,
+      aspectRatio,
+      outputMimeType: "image/png",
+    },
+  } as const;
 
   const proxy = "https://proxymorfos-7o72j76u5q-ue.a.run.app/proxyCall?url=";
   const target = `${IMAGE_ENDPOINT}?key=${apiKey}`;
   const url = `${proxy}${encodeURIComponent(target)}`;
+
+  console.log("Requisicao de imagem:", { url, body });
+
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -45,12 +54,20 @@ export const requestImages = async ({
 
   const json = JSON.parse(text);
 
+  console.log("Resposta de imagem:", JSON.stringify(json, null, 2));
+
+  // Cloud predictor returns base64 under predictions; keep older fallbacks.
+  const predictions = Array.isArray(json?.predictions) ? json.predictions : [];
   const images =
-    json?.images?.map((img: any) => img?.base64Data).filter(Boolean) ??
+    predictions
+      .map((p: any) => p?.bytesBase64Encoded || p?.byteBase64Encoded || p?.inlineData?.data)
+      .filter(Boolean) ||
+    json?.images?.map((img: any) => img?.base64Data).filter(Boolean) ||
     json?.candidates
       ?.map((c: any) => c?.image?.base64 || c?.image?.imageBytes)
-      .filter(Boolean) ??
+      .filter(Boolean) ||
     [];
 
+  console.log("Resposta de imagem:", { images });
   return { images, raw: json };
 };
