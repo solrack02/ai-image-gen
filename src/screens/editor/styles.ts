@@ -221,6 +221,18 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
     fontFamily: fontSans,
   },
+  downloadButton: {
+    marginTop: 4,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: palette.text,
+  },
+  downloadButtonText: {
+    color: palette.canvas,
+    fontWeight: "700",
+    fontFamily: fontSans,
+  },
   ghostButton: {
     paddingHorizontal: 12,
     paddingVertical: 10,

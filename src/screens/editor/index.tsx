@@ -3,6 +3,7 @@ import { useData, setData } from "@/src/centralData";
 import React, { useMemo, useState } from "react";
 import {
   Image,
+  Linking,
   ScrollView,
   Text,
   TextInput,
@@ -43,9 +44,10 @@ const Editor = () => {
         id: `generated-${idx}`,
         uri: `data:image/png;base64,${img}`,
         caption: generation.prompt || `Geracao ${idx + 1}`,
+        isGenerated: true,
       }));
     }
-    return mockPreviews;
+    return mockPreviews.map((item) => ({ ...item, isGenerated: false }));
   }, [generation.images, generation.prompt]);
 
   const handleGenerate = async () => {
@@ -141,6 +143,14 @@ const Editor = () => {
                   <TouchableOpacity style={styles.secondaryButton}>
                     <Text style={styles.secondaryButtonText}>Refinar</Text>
                   </TouchableOpacity>
+                  {item.isGenerated ? (
+                    <TouchableOpacity
+                      style={styles.downloadButton}
+                      onPress={() => Linking.openURL(item.uri)}
+                    >
+                      <Text style={styles.downloadButtonText}>Baixar</Text>
+                    </TouchableOpacity>
+                  ) : null}
                 </View>
               </View>
             ))}

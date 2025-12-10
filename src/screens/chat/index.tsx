@@ -1,6 +1,6 @@
+import { goTo, setData } from "@/src/centralData";
 import React, { useState } from "react";
 import { Image, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { goTo, setData } from "@/src/centralData";
 import { requestImages } from "../../../actions";
 import { styles } from "./styles";
 
@@ -37,6 +37,7 @@ export const Chat = () => {
         />
         <TouchableOpacity style={styles.chatButton} onPress={handleCreate}>
           <Image source={logoSource} style={styles.animatedGif} />
+          <Text style={styles.chatText}>Gerar</Text>
         </TouchableOpacity>
       </View>
     </View>
