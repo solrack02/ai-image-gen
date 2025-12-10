@@ -45,13 +45,25 @@ export const styles = StyleSheet.create({
     // borderWidth: 1,
     // borderColor: palette.border,
     position: "absolute",
-    right: 10
+    right: 10,
+  },
+  chatButtonDisabled: {
+    opacity: 0.6,
   },
   chatText: {
     color: palette.canvas,
+    fontSize: 16,
+    fontWeight: "700",
+    fontFamily: fontSans,
   },
   animatedGif: {
     width: 26,
     height: 26,
+  },
+  errorText: {
+    marginTop: 10,
+    color: "#b91c1c",
+    fontSize: 14,
+    fontFamily: fontSans,
   },
 });
