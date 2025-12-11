@@ -24,6 +24,10 @@ export const requestImgToImg = async ({
   aspectRatio = "1:1",
   references = [],
 }: RequestImgToImgParams): Promise<RequestImgToImgResult> => {
+  // Simple 1x1 white PNG used as default mask for testing inpainting requirement.
+  const DEFAULT_MASK_BASE64 =
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==";
+
   const projectId =
     process.env.VERTEX_PROJECT_ID ||
     process.env.EXPO_PUBLIC_VERTEX_PROJECT_ID;
@@ -48,7 +52,9 @@ export const requestImgToImg = async ({
     aspectRatio,
     promptLength: prompt?.length || 0,
     hasImage: !!firstRef?.data,
+    imageBytesLen: firstRef?.data?.length || 0,
     mimeType: firstRef?.mimeType,
+    maskProvided: true,
     location,
     projectId,
   };
@@ -58,8 +64,17 @@ export const requestImgToImg = async ({
       {
         prompt,
         image: {
-          // Vertex imagegeneration expects imageBytes or imageUri.
-          imageBytes: firstRef.data,
+          // Inline data is the documented shape for image + mask on imagegeneration.
+          inlineData: {
+            data: firstRef.data,
+            mimeType: firstRef.mimeType || "image/png",
+          },
+        },
+        mask: {
+          inlineData: {
+            data: DEFAULT_MASK_BASE64,
+            mimeType: "image/png",
+          },
         },
       },
     ],
