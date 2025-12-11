@@ -6,6 +6,12 @@ const palette = Colors.dark;
 const fontSans = Fonts.sans;
 
 export const styles = StyleSheet.create({
+    logoImg: {
+    width: 28,
+    height: 28,
+    borderRadius: 10,
+    backgroundColor: palette.divider,
+  },
   page: {
     flex: 1,
     backgroundColor: palette.canvas,
@@ -19,17 +25,19 @@ export const styles = StyleSheet.create({
     alignItems: "center",
   },
   headerLeft: {
-    gap: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
   },
   screenTitle: {
-    fontSize: 22,
+    fontSize: 12,
     fontWeight: "800",
     color: palette.text,
     fontFamily: fontSans,
   },
   screenSubtitle: {
     fontSize: 14,
-    color: palette.secondaryText,
+    color: palette.text,
     fontFamily: fontSans,
   },
   headerActions: {
@@ -206,11 +214,11 @@ export const styles = StyleSheet.create({
   primaryButton: {
     backgroundColor: palette.elevated || palette.text,
     paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingVertical: 10,
+    borderRadius: 30,
   },
   primaryButtonText: {
-    color: palette.canvas,
+    color: palette.text,
     fontWeight: "700",
     fontFamily: fontSans,
   },
@@ -229,7 +237,7 @@ export const styles = StyleSheet.create({
   ghostButton: {
     paddingHorizontal: 12,
     paddingVertical: 10,
-    borderRadius: 12,
+    borderRadius: 30,
     borderWidth: 1,
     borderColor: palette.divider,
     backgroundColor: palette.surface,

@@ -30,7 +30,7 @@ export const Colors = {
     muted: '#3e3c3bff',
     background: '#151718',
     canvas: '#000',
-    surface: '#0b0f15',
+    surface: '#080808',
     elevated: '#ff2b00',
     border: '#30363d',
     divider: '#0a0908ff',

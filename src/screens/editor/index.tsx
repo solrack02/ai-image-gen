@@ -1,5 +1,5 @@
 import { requestImages } from "@/actions";
-import { setData, useData } from "@/src/centralData";
+import { goTo, setData, useData } from "@/src/centralData";
 import React, { useMemo, useState } from "react";
 import {
   Image,
@@ -31,6 +31,7 @@ const mockPreviews = [
 ];
 
 const Editor = () => {
+  const logoSource = require("../../../assets/logo3.png");
   const generation = useData((ct) => ct.system.generation);
   const [prompt, setPrompt] = useState(
     generation.prompt ||
@@ -69,15 +70,21 @@ const Editor = () => {
     <View style={styles.page}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.screenTitle}>Editor</Text>
-          <Text style={styles.screenSubtitle}>Fissium | AI Studio</Text>
+          <Image source={logoSource} style={styles.logoImg} />
+          <View>
+            <Text style={styles.screenTitle}>Editor</Text>
+            <Text style={styles.screenSubtitle}>Fissium | AI Studio</Text>
+          </View>
         </View>
         <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.ghostButton}>
+          <TouchableOpacity style={styles.ghostButton} onPress={() => goTo("home")}>
             <Text style={styles.ghostButtonText}>Galeria</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.primaryButton} onPress={handleGenerate}>
-            <Text style={styles.primaryButtonText}>Gerar</Text>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            // onPress={handleGenerate}
+          >
+            <Text style={styles.primaryButtonText}>Buscar</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -123,7 +130,9 @@ const Editor = () => {
               ))}
             </View>
             <TouchableOpacity style={styles.linkButton}>
-              <Text style={styles.linkButtonText}>Upload ou arraste uma imagem</Text>
+              <Text style={styles.linkButtonText}>
+                Upload ou arraste uma imagem
+              </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
