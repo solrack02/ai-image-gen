@@ -3,7 +3,7 @@ import { getVertexToken } from "./getVertexToken";
 type RequestImgToImgParams = {
   prompt: string;
   aspectRatio?: string;
-  references?: string[]; // expects data URIs for conditioning
+  references?: string[]; // data URIs (image/png;base64,...)
 };
 
 type RequestImgToImgResult = {
@@ -24,10 +24,6 @@ export const requestImgToImg = async ({
   aspectRatio = "1:1",
   references = [],
 }: RequestImgToImgParams): Promise<RequestImgToImgResult> => {
-  // Simple 1x1 white PNG used as default mask for testing inpainting requirement.
-  const DEFAULT_MASK_BASE64 =
-    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==";
-
   const projectId =
     process.env.VERTEX_PROJECT_ID ||
     process.env.EXPO_PUBLIC_VERTEX_PROJECT_ID;
@@ -39,42 +35,38 @@ export const requestImgToImg = async ({
   if (!projectId) {
     throw new Error("VERTEX_PROJECT_ID nao configurada");
   }
+
   const bearer = await getVertexToken();
 
-  const IMAGE_MODEL = "imagegeneration";
+  const IMAGE_MODEL = "imagegeneration@002";
   const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${IMAGE_MODEL}:predict`;
 
   const firstRef = parseDataUri(references[0]);
   if (!firstRef) {
-    throw new Error("Referencia precisa ser enviada como data URI para img-to-img.");
+    throw new Error(
+      "Referencia precisa ser enviada como data URI para img-to-img."
+    );
   }
+
   const logParams = {
     aspectRatio,
     promptLength: prompt?.length || 0,
     hasImage: !!firstRef?.data,
     imageBytesLen: firstRef?.data?.length || 0,
     mimeType: firstRef?.mimeType,
-    maskProvided: true,
+    maskProvided: false,
     location,
     projectId,
   };
 
+  // Vertex img-to-img expects `bytesBase64Encoded` (or imageBytes) + mimeType.
   const body = {
     instances: [
       {
         prompt,
         image: {
-          // Inline data is the documented shape for image + mask on imagegeneration.
-          inlineData: {
-            data: firstRef.data,
-            mimeType: firstRef.mimeType || "image/png",
-          },
-        },
-        mask: {
-          inlineData: {
-            data: DEFAULT_MASK_BASE64,
-            mimeType: "image/png",
-          },
+          bytesBase64Encoded: firstRef.data,
+          mimeType: firstRef.mimeType || "image/png",
         },
       },
     ],
@@ -98,7 +90,9 @@ export const requestImgToImg = async ({
 
   const text = await response.text();
   if (!response.ok) {
-    throw new Error(`Erro na chamada de imagem (img-to-img): ${response.status} - ${text}`);
+    throw new Error(
+      `Erro na chamada de imagem (img-to-img): ${response.status} - ${text}`
+    );
   }
 
   const json = JSON.parse(text);
