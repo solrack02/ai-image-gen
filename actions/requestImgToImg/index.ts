@@ -4,6 +4,10 @@ type RequestImgToImgParams = {
   prompt: string;
   aspectRatio?: string;
   references?: string[]; // data URIs (image/png;base64,...)
+  sampleCount?: number;
+  outputMimeType?: string;
+  negativePrompt?: string;
+  seed?: number;
 };
 
 type RequestImgToImgResult = {
@@ -22,6 +26,10 @@ const parseDataUri = (input?: string | null) => {
 export const requestImgToImg = async ({
   prompt,
   aspectRatio = "1:1",
+  sampleCount = 1,
+  outputMimeType = "image/png",
+  negativePrompt,
+  seed,
   references = [],
 }: RequestImgToImgParams): Promise<RequestImgToImgResult> => {
   const projectId =
@@ -38,46 +46,70 @@ export const requestImgToImg = async ({
 
   const bearer = await getVertexToken();
 
-  const IMAGE_MODEL = "imagegeneration@002";
+  // Modelo correto para subject customization (few-shot)
+  const IMAGE_MODEL = "imagen-3.0-capability-001";
   const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${IMAGE_MODEL}:predict`;
 
-  const firstRef = parseDataUri(references[0]);
-  if (!firstRef) {
+  // Converte todas as referências válidas
+  const parsedRefs = references
+    .map(parseDataUri)
+    .filter((r): r is { mimeType: string; data: string } => !!r);
+
+  if (parsedRefs.length === 0) {
     throw new Error(
-      "Referencia precisa ser enviada como data URI para img-to-img."
+      "Referencia precisa ser enviada como data URI para subject customization."
     );
   }
+
+  // Cada imagem de referência entra como REFERENCE_TYPE_SUBJECT.
+  // Todos com referenceId = 1 (mesmo sujeito).
+  const referenceImages = parsedRefs.map((ref) => ({
+    referenceType: "REFERENCE_TYPE_SUBJECT",
+    referenceId: 1,
+    referenceImage: {
+      bytesBase64Encoded: ref.data,
+    },
+    subjectImageConfig: {
+      // descrição simples do sujeito da foto
+      // subjectDescription: "homem de oculos e barba [1]",
+      subjectDescription: prompt,
+      subjectType: "SUBJECT_TYPE_PERSON",
+    },
+  }));
 
   const logParams = {
     aspectRatio,
     promptLength: prompt?.length || 0,
-    hasImage: !!firstRef?.data,
-    imageBytesLen: firstRef?.data?.length || 0,
-    mimeType: firstRef?.mimeType,
-    maskProvided: false,
+    referenceCount: referenceImages.length,
+    sampleCount,
+    outputMimeType,
+    hasNegativePrompt: !!negativePrompt,
+    seed,
     location,
     projectId,
   };
 
-  // Vertex img-to-img expects `bytesBase64Encoded` (or imageBytes) + mimeType.
   const body = {
     instances: [
       {
+        // IMPORTANTE: usar [1] na prompt, ex: "homem [1] sorrindo..."
         prompt,
-        image: {
-          bytesBase64Encoded: firstRef.data,
-          mimeType: firstRef.mimeType || "image/png",
-        },
+        referenceImages,
       },
     ],
     parameters: {
       aspectRatio,
-      outputMimeType: "image/png",
-      sampleCount: 1,
+      sampleCount,
+      seed,
+      negativePrompt,
+      language: "pt",
+      outputOptions: {
+        mimeType: outputMimeType,
+      },
     },
   };
 
-  console.log("Vertex img-to-img request:", logParams);
+  console.log("Vertex subject-customization request:", logParams);
 
   const response = await fetch(endpoint, {
     method: "POST",
@@ -91,7 +123,7 @@ export const requestImgToImg = async ({
   const text = await response.text();
   if (!response.ok) {
     throw new Error(
-      `Erro na chamada de imagem (img-to-img): ${response.status} - ${text}`
+      `Erro na chamada de imagem (subject-customization): ${response.status} - ${text}`
     );
   }
 
