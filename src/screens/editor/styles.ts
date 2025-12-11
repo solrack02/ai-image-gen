@@ -6,6 +6,11 @@ const palette = Colors.dark;
 const fontSans = Fonts.sans;
 
 export const styles = StyleSheet.create({
+  lineRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
     logoImg: {
     width: 28,
     height: 28,
@@ -191,7 +196,7 @@ export const styles = StyleSheet.create({
   },
   previewCard: {
     backgroundColor: palette.surface,
-    borderRadius: 16,
+    borderRadius: 6,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: palette.divider,
@@ -206,7 +211,7 @@ export const styles = StyleSheet.create({
   previewOverlay: {
     padding: 12,
     gap: 10,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    // backgroundColor: "rgba(0,0,0,0.3)",
   },
   previewCaption: {
     fontSize: 14,
@@ -216,8 +221,8 @@ export const styles = StyleSheet.create({
   commandBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: palette.surface,
-    borderRadius: 12,
+    backgroundColor: "#060606",
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: palette.divider,
     padding: 10,

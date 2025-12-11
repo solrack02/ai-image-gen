@@ -34,17 +34,12 @@ const mockPreviews = [
 const Editor = () => {
   const logoSource = require("../../../assets/logo3.png");
   const generation = useData((ct) => ct.system.generation);
-  const [prompt, setPrompt] = useState(
-    generation.prompt ||
-      ""
-  );
+  const [prompt, setPrompt] = useState(generation.prompt || "");
   const [isLoading, setIsLoading] = useState(false);
   // const [referenceImages, setReferenceImages] = useState<string[]>(
   //   mockPreviews.map((item) => item.uri)
   // );
-  const [referenceImages, setReferenceImages] = useState<string[]>(
-    []
-  );
+  const [referenceImages, setReferenceImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const previews = useMemo(() => {
@@ -54,9 +49,14 @@ const Editor = () => {
         uri: `data:image/png;base64,${img}`,
         caption: generation.prompt || `Geracao ${idx + 1}`,
         isGenerated: true,
+        sourceIndex: idx,
       }));
     }
-    return mockPreviews.map((item) => ({ ...item, isGenerated: false }));
+    return mockPreviews.map((item) => ({
+      ...item,
+      isGenerated: false,
+      sourceIndex: -1,
+    }));
   }, [generation.images, generation.prompt]);
 
   const handleGenerate = async () => {
@@ -133,6 +133,13 @@ const Editor = () => {
     []
   );
 
+  const handleRemoveGenerated = (idx: number) => {
+    setData((ct) => {
+      const images = ct.system.generation.images || [];
+      ct.system.generation.images = images.filter((_, imageIdx) => imageIdx !== idx);
+    });
+  };
+
   return (
     <View style={styles.page}>
       <View style={styles.header}>
@@ -144,7 +151,10 @@ const Editor = () => {
           </View>
         </View>
         <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.ghostButton} onPress={() => goTo("home")}>
+          <TouchableOpacity
+            style={styles.ghostButton}
+            onPress={() => goTo("home")}
+          >
             <Text style={styles.ghostButtonText}>Galeria</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -186,8 +196,8 @@ const Editor = () => {
           </View>
 
           <View style={styles.card}>
-              <Text style={styles.cardTitle}>Referencias</Text>
-              <View style={styles.referenceGrid}>
+            <Text style={styles.cardTitle}>Referencias</Text>
+            <View style={styles.referenceGrid}>
               {referenceImages.map((uri, idx) => (
                 <View key={`${uri}-${idx}`} style={styles.referenceItem}>
                   <Image source={{ uri }} style={styles.referenceThumb} />
@@ -199,8 +209,11 @@ const Editor = () => {
                   </TouchableOpacity>
                 </View>
               ))}
-              </View>
-            <TouchableOpacity style={styles.linkButton} onPress={handlePickClick}>
+            </View>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={handlePickClick}
+            >
               <Text style={styles.linkButtonText}>
                 Upload ou arraste uma imagem
               </Text>
@@ -230,18 +243,34 @@ const Editor = () => {
                 <Image source={{ uri: item.uri }} style={styles.previewImage} />
                 <View style={styles.previewOverlay}>
                   <Text style={styles.previewCaption}>{item.caption}</Text>
-                  <TouchableOpacity style={styles.secondaryButton}>
-                    <Text style={styles.secondaryButtonText}>Refinar</Text>
-                  </TouchableOpacity>
-                  
-                  {item.isGenerated ? (
-                    <TouchableOpacity
-                      style={styles.downloadButton}
-                      onPress={() => handleDownload(item.uri, item.caption)}
-                    >
-                      <Text style={styles.downloadButtonText}>Baixar</Text>
-                    </TouchableOpacity>
-                  ) : null}
+
+                  <View style={styles.header}>
+                    {item.isGenerated ? (
+                      <TouchableOpacity
+                        style={styles.secondaryButton}
+                        onPress={() => handleRemoveGenerated(item.sourceIndex)}
+                      >
+                        <Text style={styles.secondaryButtonText}>Excluir</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={{ width: 1 }} />
+                    )}
+
+                    <View style={styles.lineRow}>
+                      <TouchableOpacity style={styles.secondaryButton}>
+                        <Text style={styles.secondaryButtonText}>Refinar</Text>
+                      </TouchableOpacity>
+
+                      {item.isGenerated ? (
+                        <TouchableOpacity
+                          style={styles.downloadButton}
+                          onPress={() => handleDownload(item.uri, item.caption)}
+                        >
+                          <Text style={styles.downloadButtonText}>Baixar</Text>
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+                  </View>
                 </View>
               </View>
             ))}
