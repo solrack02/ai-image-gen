@@ -36,7 +36,7 @@ const Editor = () => {
   const generation = useData((ct) => ct.system.generation);
   const [prompt, setPrompt] = useState(
     generation.prompt ||
-      "um estilo minimalista com cores suaves e foco em composicao limpa"
+      ""
   );
   const [isLoading, setIsLoading] = useState(false);
   // const [referenceImages, setReferenceImages] = useState<string[]>(
@@ -88,6 +88,22 @@ const Editor = () => {
 
   const handleRemoveReference = (targetIdx: number) => {
     setReferenceImages((prev) => prev.filter((_, idx) => idx !== targetIdx));
+  };
+
+  const handleDownload = (uri: string, filename: string) => {
+    if (!uri) return;
+
+    if (Platform.OS === "web" && typeof document !== "undefined") {
+      const link = document.createElement("a");
+      link.href = uri;
+      link.download = `${filename || "imagem"}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+
+    Linking.openURL(uri);
   };
 
   const handleFilesSelected = useCallback(
@@ -217,10 +233,11 @@ const Editor = () => {
                   <TouchableOpacity style={styles.secondaryButton}>
                     <Text style={styles.secondaryButtonText}>Refinar</Text>
                   </TouchableOpacity>
+                  
                   {item.isGenerated ? (
                     <TouchableOpacity
                       style={styles.downloadButton}
-                      onPress={() => Linking.openURL(item.uri)}
+                      onPress={() => handleDownload(item.uri, item.caption)}
                     >
                       <Text style={styles.downloadButtonText}>Baixar</Text>
                     </TouchableOpacity>
