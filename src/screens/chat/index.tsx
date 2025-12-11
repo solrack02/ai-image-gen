@@ -27,7 +27,8 @@ export const Chat = () => {
       const { images } = await requestImages({ prompt: safePrompt });
       setData((ct) => {
         ct.system.generation.prompt = safePrompt;
-        ct.system.generation.images = images;
+        const prevImages = ct.system.generation.images || [];
+        ct.system.generation.images = [...prevImages, ...images];
       });
       goTo("editor");
     } catch (err: any) {

@@ -66,8 +66,9 @@ const Editor = () => {
         references: referenceImages,
       });
       setData((ct) => {
+        const prevImages = ct.system.generation.images || [];
         ct.system.generation.prompt = prompt;
-        ct.system.generation.images = images;
+        ct.system.generation.images = [...prevImages, ...images];
       });
     } catch (error) {
       console.error("Falha ao gerar imagens", error);
