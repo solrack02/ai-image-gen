@@ -1,3 +1,5 @@
+import { getVertexToken } from "./getVertexToken";
+
 type RequestImgToImgParams = {
   prompt: string;
   aspectRatio?: string;
@@ -22,21 +24,18 @@ export const requestImgToImg = async ({
   aspectRatio = "1:1",
   references = [],
 }: RequestImgToImgParams): Promise<RequestImgToImgResult> => {
-  const projectId = process.env.VERTEX_PROJECT_ID;
-  const location = process.env.VERTEX_LOCATION || "us-central1";
-  const bearer =
-    process.env.VERTEX_ACCESS_TOKEN ||
-    process.env.GOOGLE_VERTEX_ACCESS_TOKEN ||
-    process.env.ACCESS_TOKEN;
+  const projectId =
+    process.env.VERTEX_PROJECT_ID ||
+    process.env.EXPO_PUBLIC_VERTEX_PROJECT_ID;
+  const location =
+    process.env.VERTEX_LOCATION ||
+    process.env.EXPO_PUBLIC_VERTEX_LOCATION ||
+    "us-central1";
 
   if (!projectId) {
     throw new Error("VERTEX_PROJECT_ID nao configurada");
   }
-  if (!bearer) {
-    throw new Error(
-      "Token de acesso Vertex ausente. Defina VERTEX_ACCESS_TOKEN ou GOOGLE_VERTEX_ACCESS_TOKEN."
-    );
-  }
+  const bearer = await getVertexToken();
 
   const IMAGE_MODEL = "imagegeneration";
   const endpoint = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${IMAGE_MODEL}:predict`;
@@ -45,13 +44,22 @@ export const requestImgToImg = async ({
   if (!firstRef) {
     throw new Error("Referencia precisa ser enviada como data URI para img-to-img.");
   }
+  const logParams = {
+    aspectRatio,
+    promptLength: prompt?.length || 0,
+    hasImage: !!firstRef?.data,
+    mimeType: firstRef?.mimeType,
+    location,
+    projectId,
+  };
 
   const body = {
     instances: [
       {
         prompt,
         image: {
-          inlineData: firstRef,
+          // Vertex imagegeneration expects imageBytes or imageUri.
+          imageBytes: firstRef.data,
         },
       },
     ],
@@ -61,6 +69,8 @@ export const requestImgToImg = async ({
       sampleCount: 1,
     },
   };
+
+  console.log("Vertex img-to-img request:", logParams);
 
   const response = await fetch(endpoint, {
     method: "POST",
