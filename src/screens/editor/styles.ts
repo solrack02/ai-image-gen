@@ -1,15 +1,16 @@
 import { StyleSheet } from "react-native";
 import { Colors, Fonts } from "../../../constants/theme";
 
-const palette = Colors.light;
+// Dark theme inspired by the reference landing page.
+const palette = Colors.dark;
 const fontSans = Fonts.sans;
 
 export const styles = StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: palette.canvas,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
     gap: 12,
   },
   header: {
@@ -21,8 +22,8 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   screenTitle: {
-    fontSize: 24,
-    fontWeight: "700",
+    fontSize: 22,
+    fontWeight: "800",
     color: palette.text,
     fontFamily: fontSans,
   },
@@ -38,10 +39,11 @@ export const styles = StyleSheet.create({
   body: {
     flex: 1,
     flexDirection: "row",
-    gap: 12,
+    gap: 18,
   },
   sidebar: {
-    width: 260,
+    width: 220,
+    maxWidth: 300
   },
   sidebarContent: {
     paddingVertical: 8,
@@ -124,7 +126,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   linkButtonText: {
-    color: palette.text,
+    color: palette.accent,
     fontWeight: "600",
     fontFamily: fontSans,
   },
@@ -151,9 +153,10 @@ export const styles = StyleSheet.create({
     fontFamily: fontSans,
   },
   previewGrid: {
-    flex: 1,
+    justifyContent: "flex-start",
     flexDirection: "row",
     flexWrap: "wrap",
+    flex: 1,
     gap: 12,
   },
   previewCard: {
@@ -162,16 +165,18 @@ export const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: palette.divider,
-    width: "48%",
-    minHeight: 200,
+    width: "36%",
+    maxWidth: 300,
+    minHeight: 220,
   },
   previewImage: {
     width: "100%",
-    height: 180,
+    height: 200,
   },
   previewOverlay: {
     padding: 12,
     gap: 10,
+    backgroundColor: "rgba(0,0,0,0.3)",
   },
   previewCaption: {
     fontSize: 14,
@@ -199,7 +204,7 @@ export const styles = StyleSheet.create({
     color: palette.text,
   },
   primaryButton: {
-    backgroundColor: palette.text,
+    backgroundColor: palette.elevated || palette.text,
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 12,
@@ -221,18 +226,6 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
     fontFamily: fontSans,
   },
-  downloadButton: {
-    marginTop: 4,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: palette.text,
-  },
-  downloadButtonText: {
-    color: palette.canvas,
-    fontWeight: "700",
-    fontFamily: fontSans,
-  },
   ghostButton: {
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -244,6 +237,18 @@ export const styles = StyleSheet.create({
   ghostButtonText: {
     color: palette.text,
     fontWeight: "600",
+    fontFamily: fontSans,
+  },
+  downloadButton: {
+    marginTop: 4,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: palette.text,
+  },
+  downloadButtonText: {
+    color: palette.canvas,
+    fontWeight: "700",
     fontFamily: fontSans,
   },
 });

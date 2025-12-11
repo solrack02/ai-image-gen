@@ -4,12 +4,10 @@ import Home from "../screens/home";
 import Policy from "../screens/policy";
 
 export const screens = {
+  editor: Editor,
   home: Home,
   chat: Chat,
-  editor: Editor,
   policy: Policy,
-  teste: Chat,
-  teste2: Home,
 } as const;
 
 export type RouteName = keyof typeof screens;
