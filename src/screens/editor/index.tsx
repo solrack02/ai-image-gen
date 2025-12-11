@@ -44,20 +44,26 @@ const Editor = () => {
 
   const previews = useMemo(() => {
     if (generation.images?.length) {
-      return generation.images.map((img, idx) => ({
-        id: `generated-${idx}`,
-        uri: `data:image/png;base64,${img}`,
-        caption: generation.prompt || `Geracao ${idx + 1}`,
-        isGenerated: true,
-        sourceIndex: idx,
-      }));
+      return generation.images.map((img: any, idx: number) => {
+        const rawData = img?.data || "";
+        const uri = rawData.startsWith("data:")
+          ? rawData
+          : `data:image/png;base64,${rawData}`;
+        return {
+          id: `generated-${idx}`,
+          uri,
+          caption: img?.prompt || `Geracao ${idx + 1}`,
+          isGenerated: true,
+          sourceIndex: idx,
+        };
+      });
     }
     return mockPreviews.map((item) => ({
       ...item,
       isGenerated: false,
       sourceIndex: -1,
     }));
-  }, [generation.images, generation.prompt]);
+  }, [generation.images]);
 
   const handleGenerate = async () => {
     setIsLoading(true);
@@ -71,7 +77,10 @@ const Editor = () => {
       setData((ct) => {
         const prevImages = ct.system.generation.images || [];
         ct.system.generation.prompt = prompt;
-        ct.system.generation.images = [...prevImages, ...images];
+        ct.system.generation.images = [
+          ...prevImages,
+          ...images.map((img) => ({ data: img, prompt })),
+        ];
       });
     } catch (error) {
       console.error("Falha ao gerar imagens", error);

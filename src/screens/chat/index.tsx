@@ -28,7 +28,10 @@ export const Chat = () => {
       setData((ct) => {
         ct.system.generation.prompt = safePrompt;
         const prevImages = ct.system.generation.images || [];
-        ct.system.generation.images = [...prevImages, ...images];
+        ct.system.generation.images = [
+          ...prevImages,
+          ...images.map((img) => ({ data: img, prompt: safePrompt })),
+        ];
       });
       goTo("editor");
     } catch (err: any) {

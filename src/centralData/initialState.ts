@@ -11,7 +11,7 @@ export const initialState = {
   system: {
     generation: {
       prompt: "",
-      images: [] as string[],
+      images: [] as { data: string; prompt: string }[],
     },
   },
   router: {
