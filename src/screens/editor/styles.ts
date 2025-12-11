@@ -125,10 +125,32 @@ export const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 8,
   },
+  referenceItem: {
+    position: "relative",
+  },
   referenceThumb: {
     width: 52,
     height: 52,
     borderRadius: 8,
+  },
+  removeBadge: {
+    position: "absolute",
+    top: -6,
+    right: -6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "rgba(0,0,0,0.85)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: palette.divider,
+  },
+  removeBadgeText: {
+    color: palette.text,
+    fontSize: 14,
+    fontWeight: "800",
+    lineHeight: 16,
   },
   linkButton: {
     paddingVertical: 6,

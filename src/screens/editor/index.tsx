@@ -1,6 +1,6 @@
-import { requestImages } from "@/actions";
+import { requestTxtToImg, requestImgToImg } from "@/actions";
 import { goTo, setData, useData } from "@/src/centralData";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useCallback } from "react";
 import {
   Image,
   Linking,
@@ -9,6 +9,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Platform,
 } from "react-native";
 import { styles } from "./styles";
 
@@ -38,6 +39,10 @@ const Editor = () => {
       "um estilo minimalista com cores suaves e foco em composicao limpa"
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [referenceImages, setReferenceImages] = useState<string[]>(
+    mockPreviews.map((item) => item.uri)
+  );
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const previews = useMemo(() => {
     if (generation.images?.length) {
@@ -54,7 +59,12 @@ const Editor = () => {
   const handleGenerate = async () => {
     setIsLoading(true);
     try {
-      const { images } = await requestImages({ prompt });
+      const useImgToImg = referenceImages.length > 0;
+      const requester = useImgToImg ? requestImgToImg : requestTxtToImg;
+      const { images } = await requester({
+        prompt,
+        references: referenceImages,
+      });
       setData((ct) => {
         ct.system.generation.prompt = prompt;
         ct.system.generation.images = images;
@@ -65,6 +75,43 @@ const Editor = () => {
       setIsLoading(false);
     }
   };
+
+  const handlePickClick = () => {
+    if (Platform.OS === "web" && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleRemoveReference = (targetIdx: number) => {
+    setReferenceImages((prev) => prev.filter((_, idx) => idx !== targetIdx));
+  };
+
+  const handleFilesSelected = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files || !files.length) return;
+      const readers = Array.from(files).map(
+        (file) =>
+          new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(file);
+          })
+      );
+      try {
+        const loaded = await Promise.all(readers);
+        setReferenceImages((prev) => [...prev, ...loaded].slice(-8));
+      } catch (err) {
+        console.error("Falha ao ler arquivo", err);
+      } finally {
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
+    },
+    []
+  );
 
   return (
     <View style={styles.page}>
@@ -119,21 +166,35 @@ const Editor = () => {
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Referencias</Text>
-            <View style={styles.referenceGrid}>
-              {mockPreviews.slice(0, 4).map((item) => (
-                <Image
-                  key={item.id}
-                  source={{ uri: item.uri }}
-                  style={styles.referenceThumb}
-                />
+              <Text style={styles.cardTitle}>Referencias</Text>
+              <View style={styles.referenceGrid}>
+              {referenceImages.map((uri, idx) => (
+                <View key={`${uri}-${idx}`} style={styles.referenceItem}>
+                  <Image source={{ uri }} style={styles.referenceThumb} />
+                  <TouchableOpacity
+                    style={styles.removeBadge}
+                    onPress={() => handleRemoveReference(idx)}
+                  >
+                    <Text style={styles.removeBadgeText}>×</Text>
+                  </TouchableOpacity>
+                </View>
               ))}
-            </View>
-            <TouchableOpacity style={styles.linkButton}>
+              </View>
+            <TouchableOpacity style={styles.linkButton} onPress={handlePickClick}>
               <Text style={styles.linkButtonText}>
                 Upload ou arraste uma imagem
               </Text>
             </TouchableOpacity>
+            {Platform.OS === "web" ? (
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ display: "none" }}
+                onChange={handleFilesSelected}
+              />
+            ) : null}
           </View>
         </ScrollView>
 
