@@ -31,6 +31,18 @@ const mockPreviews = [
   },
 ];
 
+const ratioOptions = ["1:1", "3:4", "4:5", "16:9", "9:16", "2:3"];
+const contentOptions = [
+  "Dark Fantasy",
+  "Neon",
+  "Fotorrealism",
+  "Manga",
+  "Cartoon",
+  "Concept Art",
+  "Cyberpunk",
+  "Surrealism",
+];
+
 const Editor = () => {
   const logoSource = require("../../../assets/logo3.png");
   const generation = useData((ct) => ct.system.generation);
@@ -41,6 +53,8 @@ const Editor = () => {
   // );
   const [referenceImages, setReferenceImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [aspectRatio, setAspectRatio] = useState(ratioOptions[0]);
+  const [contentStyle, setContentStyle] = useState(contentOptions[0]);
 
   const previews = useMemo(() => {
     if (generation.images?.length) {
@@ -68,18 +82,31 @@ const Editor = () => {
   const handleGenerate = async () => {
     setIsLoading(true);
     try {
+      const promptWithStyle = contentStyle
+        ? `${prompt} | Estilo: ${contentStyle}`
+        : prompt;
       const useImgToImg = referenceImages.length > 0;
       const requester = useImgToImg ? requestImgToImg : requestTxtToImg;
-      const { images } = await requester({
-        prompt,
-        references: referenceImages,
-      });
+      const { images } = await requester(
+        useImgToImg
+          ? {
+              prompt: promptWithStyle,
+              references: referenceImages,
+              aspectRatio,
+            }
+          : {
+              prompt: promptWithStyle,
+              references: referenceImages,
+              aspectRatio,
+              contentStyle,
+            }
+      );
       setData((ct) => {
         const prevImages = ct.system.generation.images || [];
-        ct.system.generation.prompt = prompt;
+        ct.system.generation.prompt = promptWithStyle;
         ct.system.generation.images = [
           ...prevImages,
-          ...images.map((img) => ({ data: img, prompt })),
+          ...images.map((img) => ({ data: img, prompt: promptWithStyle })),
         ];
       });
     } catch (error) {
@@ -188,19 +215,41 @@ const Editor = () => {
 
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Proporcao</Text>
-            <View style={styles.badgeRow}>
-              <Text style={[styles.badge, styles.badgeActive]}>1:1</Text>
-              <Text style={styles.badge}>3:4</Text>
-              <Text style={styles.badge}>16:9</Text>
+            <View style={styles.pillRow}>
+              {ratioOptions.map((opt) => {
+                const active = aspectRatio === opt;
+                return (
+                  <TouchableOpacity
+                    key={opt}
+                    style={[styles.pill, active && styles.pillActive]}
+                    onPress={() => setAspectRatio(opt)}
+                  >
+                    <Text style={[styles.pillText, active && styles.pillTextActive]}>
+                      {opt}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
 
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Tipo de conteudo</Text>
-            <View style={styles.toggleRow}>
-              <Text style={[styles.toggle, styles.toggleActive]}>Arte</Text>
-              <Text style={styles.toggle}>Foto</Text>
-              <Text style={styles.toggle}>Esboco</Text>
+            <View style={styles.pillRow}>
+              {contentOptions.map((opt) => {
+                const active = contentStyle === opt;
+                return (
+                  <TouchableOpacity
+                    key={opt}
+                    style={[styles.pill, active && styles.pillActive]}
+                    onPress={() => setContentStyle(opt)}
+                  >
+                    <Text style={[styles.pillText, active && styles.pillTextActive]}>
+                      {opt}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
 

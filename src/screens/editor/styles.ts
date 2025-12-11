@@ -125,6 +125,32 @@ export const styles = StyleSheet.create({
     color: palette.canvas,
     borderColor: palette.text,
   },
+  pillRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  pill: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: palette.divider,
+    backgroundColor: palette.canvas,
+  },
+  pillActive: {
+    backgroundColor: palette.text,
+    borderColor: palette.text,
+  },
+  pillText: {
+    color: palette.secondaryText,
+    fontFamily: fontSans,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  pillTextActive: {
+    color: palette.canvas,
+  },
   referenceGrid: {
     flexDirection: "row",
     flexWrap: "wrap",

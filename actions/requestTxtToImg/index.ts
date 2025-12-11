@@ -1,6 +1,7 @@
 type RequestImagesParams = {
   prompt: string;
-  aspectRatio?: "1:1" | "9:16" | "16:9" | "4:3";
+  aspectRatio?: string;
+  contentStyle?: string;
   references?: string[]; // data URIs or remote URLs for reference images
 };
 
@@ -17,6 +18,7 @@ const IMAGE_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/
 export const requestTxtToImg = async ({
   prompt,
   aspectRatio = "1:1",
+  contentStyle,
   references = [],
 }: RequestImagesParams): Promise<RequestImagesResult> => {
   const apiKey = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
@@ -37,9 +39,13 @@ export const requestTxtToImg = async ({
     })
     .filter(Boolean);
 
+  const promptWithStyle = contentStyle
+    ? `${prompt}\nEstilo: ${contentStyle}`
+    : prompt;
+
   const body = {
     // Predict expects the prompt as a plain string.
-    instances: [{ prompt, references: parsedReferences }],
+    instances: [{ prompt: promptWithStyle, references: parsedReferences }],
     parameters: {
       // sampleCount 1 keeps costs down; adjust if you need variations.
       sampleCount: 1,

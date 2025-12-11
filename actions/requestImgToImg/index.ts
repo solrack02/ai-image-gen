@@ -1,6 +1,6 @@
 type RequestImgToImgParams = {
   prompt: string;
-  aspectRatio?: "1:1" | "9:16" | "16:9" | "4:3";
+  aspectRatio?: string;
   references?: string[]; // expects data URIs for conditioning
 };
 
