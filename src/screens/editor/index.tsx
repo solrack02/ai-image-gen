@@ -1,15 +1,15 @@
-import { requestTxtToImg, requestImgToImg } from "@/actions";
+import { requestImgToImg, requestTxtToImg } from "@/actions";
 import { goTo, setData, useData } from "@/src/centralData";
-import React, { useMemo, useState, useRef, useCallback } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   Image,
   Linking,
+  Platform,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Platform,
 } from "react-native";
 import { styles } from "./styles";
 
@@ -39,8 +39,11 @@ const Editor = () => {
       "um estilo minimalista com cores suaves e foco em composicao limpa"
   );
   const [isLoading, setIsLoading] = useState(false);
+  // const [referenceImages, setReferenceImages] = useState<string[]>(
+  //   mockPreviews.map((item) => item.uri)
+  // );
   const [referenceImages, setReferenceImages] = useState<string[]>(
-    mockPreviews.map((item) => item.uri)
+    []
   );
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
