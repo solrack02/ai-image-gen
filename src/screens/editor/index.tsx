@@ -1,5 +1,5 @@
 import { requestImages } from "@/actions";
-import { useData, setData } from "@/src/centralData";
+import { setData, useData } from "@/src/centralData";
 import React, { useMemo, useState } from "react";
 import {
   Image,
@@ -15,17 +15,17 @@ import { styles } from "./styles";
 const mockPreviews = [
   {
     id: "1",
-    uri: "https://images.unsplash.com/photo-1473186578172-c141e6798cf4?auto=format&fit=crop&w=800&q=80",
+    uri: "https://leonardo.ai/wp-content/uploads/2023/07/Default_by_zemotion13_an_abstract_high_tech_background17_magic_0-500x500.jpg",
     caption: "Explorar cores e formas organicas",
   },
   {
     id: "2",
-    uri: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=800&q=80",
+    uri: "https://leonardo.ai/wp-content/uploads/2023/07/image-129.jpeg",
     caption: "Iluminacao suave e textura granular",
   },
   {
     id: "3",
-    uri: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=800&q=80",
+    uri: "https://leonardo.ai/wp-content/uploads/2023/07/440942558_122147594636192269_4903850649949505816_n.jpg",
     caption: "Composicao minimalista, alto contraste",
   },
 ];
