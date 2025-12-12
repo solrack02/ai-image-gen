@@ -63,15 +63,15 @@ export const requestImgToImg = async ({
   // Cada imagem de referência entra como REFERENCE_TYPE_SUBJECT.
   // Todos com referenceId = 1 (mesmo sujeito).
   const referenceImages = parsedRefs.map((ref) => ({
-    referenceType: "REFERENCE_TYPE_SUBJECT",
+    referenceType: "REFERENCE_TYPE_STYLE",
     referenceId: 1,
     referenceImage: {
       bytesBase64Encoded: ref.data,
     },
-    subjectImageConfig: {
-      // descrição simples do sujeito da foto
-      subjectDescription: prompt,
-      subjectType: "SUBJECT_TYPE_PERSON",
+    styleImageConfig: {
+      styleDescription:
+        "Personagem  humanoide 2D de lado caminhando para direita [1]. Pode ser um homem ou mulher, ou robô ou um alienígena ou um monstrinho.",
+      styleType: "SUBJECT_TYPE_PERSON",
     },
   }));
 
@@ -96,7 +96,22 @@ export const requestImgToImg = async ({
     instances: [
       {
         // IMPORTANTE: usar [1] na prompt, ex: "homem [1] sorrindo..."
-        prompt,
+        prompt: `
+Transformar o personagem [1] em um novo estilo descrito no prompt.
+
+IMPORTANTE:
+- Manter exatamente o mesmo layout da imagem de referência [1]
+- Manter o mesmo número de poses [1]
+- Manter as mesmas posições corporais e ângulos [1]
+- É um sprite sheet 2D para jogos
+- Recriar todas as poses com o novo estilo especificado no prompt: (ex: cartoon, dark fantasy, robô azul, monstrinho etc.)
+- O personagem deve ser o mesmo em TODAS as poses (consistente  entre as poses)
+- Fundo simples ou sólido
+
+NÃO gerar imagem única.
+Gerar sprite sheet completo.
+Manter a variação de poses igual à referência.
+O prompt é:` + prompt,
         referenceImages,
       },
     ],
@@ -123,6 +138,8 @@ export const requestImgToImg = async ({
     body: JSON.stringify(body),
   });
 
+  console.log("Vertex subject-customization response status:", response);
+
   const text = await response.text();
   if (!response.ok) {
     throw new Error(
@@ -131,6 +148,9 @@ export const requestImgToImg = async ({
   }
 
   const json = JSON.parse(text);
+
+  console.log("Vertex subject-customization response status:", json);
+
   const predictions = Array.isArray(json?.predictions) ? json.predictions : [];
   const images =
     predictions
@@ -140,5 +160,6 @@ export const requestImgToImg = async ({
       )
       .filter(Boolean) || [];
 
+  console.log("Vertex subject-customization response status:", { images });
   return { images, raw: json };
 };
