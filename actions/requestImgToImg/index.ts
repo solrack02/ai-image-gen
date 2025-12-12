@@ -1,7 +1,7 @@
 import { getVertexToken } from "./getVertexToken";
-import { model1 } from "./models";
+import { model3 } from "./models";
 
-type RequestImgToImgParams = {
+type Tprops = {
   prompt: string;
   aspectRatio?: string;
   references?: string[]; // data URIs (image/png;base64,...)
@@ -24,15 +24,12 @@ const parseDataUri = (input?: string | null) => {
   return { mimeType, data };
 };
 
-export const requestImgToImg = async ({
-  prompt,
-  aspectRatio = "1:1",
-  sampleCount = 1,
-  outputMimeType = "image/png",
-  negativePrompt,
-  seed,
-  references = [],
-}: RequestImgToImgParams): Promise<RequestImgToImgResult> => {
+type Tfunc = Promise<RequestImgToImgResult>;
+
+export const requestImgToImg = async (props: Tprops): Tfunc => {
+  const { prompt, outputMimeType = "image/png", seed, references = [] } = props;
+  const { aspectRatio = "1:1", sampleCount = 1, negativePrompt } = props;
+
   const projectId =
     process.env.VERTEX_PROJECT_ID || process.env.EXPO_PUBLIC_VERTEX_PROJECT_ID;
   const location =
@@ -61,8 +58,6 @@ export const requestImgToImg = async ({
     );
   }
 
-  // Cada imagem de referência entra como REFERENCE_TYPE_SUBJECT.
-  // Todos com referenceId = 1 (mesmo sujeito).
   const referenceImages = parsedRefs.map((ref) => ({
     referenceType: "REFERENCE_TYPE_STYLE",
     referenceId: 1,
@@ -70,16 +65,10 @@ export const requestImgToImg = async ({
       bytesBase64Encoded: ref.data,
     },
     styleImageConfig: {
-      styleDescription:
-        "Personagem  humanoide 2D de lado caminhando para direita [1]. Pode ser um homem ou mulher, ou robô ou um alienígena ou um monstrinho.",
-      styleType: "SUBJECT_TYPE_PERSON",
+      styleDescription: "Robô 2D de lado caminhando para direita [1].",
+      styleType: "SUBJECT_TYPE_OBJECT",
     },
   }));
-
-  // subjectType: "SUBJECT_TYPE_PERSON"
-  // subjectType: "SUBJECT_TYPE_ANIMAL"
-  // subjectType: "SUBJECT_TYPE_OBJECT"
-  // subjectType: "SUBJECT_TYPE_UNSPECIFIED"
 
   const logParams = {
     aspectRatio,
@@ -97,7 +86,7 @@ export const requestImgToImg = async ({
     instances: [
       {
         // IMPORTANTE: usar [1] na prompt, ex: "homem [1] sorrindo..."
-        prompt: model1 + prompt,
+        prompt: model3 + prompt,
         referenceImages,
       },
     ],
@@ -105,7 +94,7 @@ export const requestImgToImg = async ({
       aspectRatio,
       sampleCount,
       seed,
-      negativePrompt: "barba, cabelo, rosto, pessoa, humano, texto, logo, marca d'água",
+      negativePrompt,
       language: "pt",
       outputOptions: {
         mimeType: outputMimeType,
