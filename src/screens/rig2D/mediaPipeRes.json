@@ -1,0 +1,19 @@
+{
+  "poseLandmarks": [
+    {
+      "x": 0.512,
+      "y": 0.132,
+      "z": -0.084,
+      "visibility": 0.99
+    }
+  ],
+  "poseWorldLandmarks": [
+    {
+      "x": 0.12,
+      "y": 0.84,
+      "z": -0.03,
+      "visibility": 0.99
+    }
+  ],
+  "segmentationMask": null
+}
