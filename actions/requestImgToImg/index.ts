@@ -33,8 +33,7 @@ export const requestImgToImg = async ({
   references = [],
 }: RequestImgToImgParams): Promise<RequestImgToImgResult> => {
   const projectId =
-    process.env.VERTEX_PROJECT_ID ||
-    process.env.EXPO_PUBLIC_VERTEX_PROJECT_ID;
+    process.env.VERTEX_PROJECT_ID || process.env.EXPO_PUBLIC_VERTEX_PROJECT_ID;
   const location =
     process.env.VERTEX_LOCATION ||
     process.env.EXPO_PUBLIC_VERTEX_LOCATION ||
@@ -71,11 +70,15 @@ export const requestImgToImg = async ({
     },
     subjectImageConfig: {
       // descrição simples do sujeito da foto
-      // subjectDescription: "homem de oculos e barba [1]",
       subjectDescription: prompt,
       subjectType: "SUBJECT_TYPE_PERSON",
     },
   }));
+
+  // subjectType: "SUBJECT_TYPE_PERSON"
+  // subjectType: "SUBJECT_TYPE_ANIMAL"
+  // subjectType: "SUBJECT_TYPE_OBJECT"
+  // subjectType: "SUBJECT_TYPE_UNSPECIFIED"
 
   const logParams = {
     aspectRatio,
@@ -133,9 +136,7 @@ export const requestImgToImg = async ({
     predictions
       .map(
         (p: any) =>
-          p?.bytesBase64Encoded ||
-          p?.byteBase64Encoded ||
-          p?.inlineData?.data
+          p?.bytesBase64Encoded || p?.byteBase64Encoded || p?.inlineData?.data
       )
       .filter(Boolean) || [];
 
