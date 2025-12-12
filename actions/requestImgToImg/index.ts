@@ -1,4 +1,5 @@
 import { getVertexToken } from "./getVertexToken";
+import { model1 } from "./models";
 
 type RequestImgToImgParams = {
   prompt: string;
@@ -96,22 +97,7 @@ export const requestImgToImg = async ({
     instances: [
       {
         // IMPORTANTE: usar [1] na prompt, ex: "homem [1] sorrindo..."
-        prompt: `
-Transformar o personagem [1] em um novo estilo descrito no prompt.
-
-IMPORTANTE:
-- Manter exatamente o mesmo layout da imagem de referência [1]
-- Manter o mesmo número de poses [1]
-- Manter as mesmas posições corporais e ângulos [1]
-- É um sprite sheet 2D para jogos
-- Recriar todas as poses com o novo estilo especificado no prompt: (ex: cartoon, dark fantasy, robô azul, monstrinho etc.)
-- O personagem deve ser o mesmo em TODAS as poses (consistente  entre as poses)
-- Fundo simples ou sólido
-
-NÃO gerar imagem única.
-Gerar sprite sheet completo.
-Manter a variação de poses igual à referência.
-O prompt é:` + prompt,
+        prompt: model1 + prompt,
         referenceImages,
       },
     ],
@@ -119,7 +105,7 @@ O prompt é:` + prompt,
       aspectRatio,
       sampleCount,
       seed,
-      negativePrompt,
+      negativePrompt: "barba, cabelo, rosto, pessoa, humano, texto, logo, marca d'água",
       language: "pt",
       outputOptions: {
         mimeType: outputMimeType,
