@@ -1,5 +1,5 @@
 import { getVertexToken } from "./getVertexToken";
-import { model3 } from "./models";
+import { model1 } from "./models";
 
 type Tprops = {
   prompt: string;
@@ -65,7 +65,8 @@ export const requestImgToImg = async (props: Tprops): Tfunc => {
       bytesBase64Encoded: ref.data,
     },
     styleImageConfig: {
-      styleDescription: "Robô 2D de lado caminhando para direita [1].",
+      styleDescription:
+        "Sprite sheet 2D em vista lateral, personagem caminhando da esquerda para a direita, múltiplos frames sequenciais igualmente espaçados [1].",
       styleType: "SUBJECT_TYPE_OBJECT",
     },
   }));
@@ -86,15 +87,15 @@ export const requestImgToImg = async (props: Tprops): Tfunc => {
     instances: [
       {
         // IMPORTANTE: usar [1] na prompt, ex: "homem [1] sorrindo..."
-        prompt: model3 + prompt,
+        prompt: model1 + prompt,
         referenceImages,
       },
     ],
     parameters: {
-      aspectRatio,
-      sampleCount,
-      seed,
-      negativePrompt,
+      aspectRatio: "16:9",
+      sampleCount: 2,
+      seed: undefined,
+      negativePrompt: "single character, portrait, close-up, cropped, centered character",
       language: "pt",
       outputOptions: {
         mimeType: outputMimeType,

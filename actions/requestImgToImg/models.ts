@@ -66,3 +66,15 @@ O prompt é :`;
 //     subjectType: "SUBJECT_TYPE_PERSON",
 //   },
 // }));
+
+//   const referenceImages = parsedRefs.map((ref) => ({
+//     referenceType: "REFERENCE_TYPE_STYLE",
+//     referenceId: 1,
+//     referenceImage: {
+//       bytesBase64Encoded: ref.data,
+//     },
+//     styleImageConfig: {
+//       styleDescription: "Robô 2D de lado caminhando para direita [1].",
+//       styleType: "SUBJECT_TYPE_OBJECT",
+//     },
+//   }));
