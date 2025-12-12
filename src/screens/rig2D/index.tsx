@@ -6,7 +6,8 @@ import { styles } from "./styles";
 const poseData = require("./mediaPipeRes.json");
 
 type Joint = { x: number; y: number };
-type SkeletonData = { joints: Record<string, Joint>; bones: [string, string][] };
+type SkeletonFrame = { joints: Record<string, Joint>; bones: [string, string][] };
+type SkeletonData = SkeletonFrame[];
 
 const normalizePoints = (joints: Record<string, Joint>, width: number, height: number) =>
   Object.entries(joints).reduce<Record<string, { x: number; y: number }>>(
@@ -84,28 +85,34 @@ const drawSkeleton = (
 const Rig2D = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [lastDraw, setLastDraw] = useState<number | null>(null);
+  const [frameIndex, setFrameIndex] = useState<number>(0);
 
   const skeleton = useMemo(() => {
     const data = poseData as SkeletonData;
-    const joints = data?.joints || {};
-    const bones = Array.isArray(data?.bones) ? data.bones : [];
-    return { joints, bones };
+    return Array.isArray(data) ? data : [];
   }, []);
 
   useEffect(() => {
     if (Platform.OS !== "web") return;
     const canvas = canvasRef.current;
-    if (!canvas || !Object.keys(skeleton.joints).length) return;
-    drawSkeleton(canvas, skeleton.joints, skeleton.bones);
+    const current = skeleton[frameIndex];
+    if (!canvas || !current || !Object.keys(current.joints).length) return;
+    drawSkeleton(canvas, current.joints, current.bones);
     setLastDraw(Date.now());
-  }, [skeleton]);
+  }, [skeleton, frameIndex]);
 
   const handleRedraw = () => {
     if (Platform.OS !== "web") return;
     const canvas = canvasRef.current;
-    if (!canvas || !Object.keys(skeleton.joints).length) return;
-    drawSkeleton(canvas, skeleton.joints, skeleton.bones);
+    const current = skeleton[frameIndex];
+    if (!canvas || !current || !Object.keys(current.joints).length) return;
+    drawSkeleton(canvas, current.joints, current.bones);
     setLastDraw(Date.now());
+  };
+
+  const handleFrameChange = (idx: number) => {
+    if (idx < 0 || idx >= skeleton.length) return;
+    setFrameIndex(idx);
   };
 
   return (
@@ -137,12 +144,29 @@ const Rig2D = () => {
         <View style={styles.metaCard}>
           <Text style={styles.caption}>Dados carregados</Text>
           <Text style={styles.metaText}>
-            Juntas: {Object.keys(skeleton.joints).length} | Ultimo desenho:{" "}
+            Quadros: {skeleton.length} | Juntas:{" "}
+            {skeleton[frameIndex] ? Object.keys(skeleton[frameIndex].joints).length : 0} | Ultimo desenho:{" "}
             {lastDraw ? new Date(lastDraw).toLocaleTimeString() : "ainda nao"}
           </Text>
           <Text style={styles.metaText}>
             Arquivo: src/screens/rig2D/mediaPipeRes.json
           </Text>
+          <View style={styles.frameRow}>
+            {skeleton.map((_, idx) => {
+              const active = idx === frameIndex;
+              return (
+                <TouchableOpacity
+                  key={idx}
+                  style={[styles.frameButton, active && styles.frameButtonActive]}
+                  onPress={() => handleFrameChange(idx)}
+                >
+                  <Text style={[styles.frameButtonText, active && styles.frameButtonTextActive]}>
+                    {idx + 1}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
       </View>
     </View>

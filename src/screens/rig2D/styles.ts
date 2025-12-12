@@ -80,4 +80,30 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: fontSans,
   },
+  frameRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 8,
+  },
+  frameButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: palette.divider,
+    backgroundColor: palette.surface,
+  },
+  frameButtonActive: {
+    backgroundColor: palette.elevated,
+    borderColor: palette.elevated,
+  },
+  frameButtonText: {
+    color: palette.text,
+    fontWeight: "700",
+    fontFamily: fontSans,
+  },
+  frameButtonTextActive: {
+    color: palette.canvas,
+  },
 });
