@@ -130,6 +130,8 @@ const normalizePoints = (joints: Record<string, Joint>, width: number, height: n
     {}
   );
 
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+
 const drawSkeleton = (
   canvas: HTMLCanvasElement,
   joints: Record<string, Joint>,
@@ -143,6 +145,8 @@ const drawSkeleton = (
   const height = Math.round(width * (9 / 16));
   canvas.width = width;
   canvas.height = height;
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
 
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = "#050505";
@@ -218,17 +222,28 @@ const Rig2D = () => {
   const [lastDraw, setLastDraw] = useState<number | null>(null);
   const [frameIndex, setFrameIndex] = useState<number>(0);
   const [presetId, setPresetId] = useState<string>(presets[0]?.id);
+  const [frames, setFrames] = useState<SkeletonData>([]);
+  const [draggingJoint, setDraggingJoint] = useState<string | null>(null);
 
   const currentPreset = presets.find((item) => item.id === presetId) || presets[0];
-  const { frames: skeleton, meta } = useMemo(
-    () => buildSkeleton(currentPreset?.data as PoseFile),
-    [currentPreset]
-  );
-  const loopLabel = meta.loop === undefined ? "n/d" : meta.loop ? "sim" : "nao";
-  const fpsLabel = meta.fps ?? "n/d";
-  const directionLabel = meta.direction || "n/d";
-  const presetLabel = meta.name || currentPreset?.label || currentPreset?.id || "preset";
-  const skeletonLabel = meta.skeleton || "humanoid";
+  const presetData = useMemo(() => buildSkeleton(currentPreset?.data as PoseFile), [currentPreset]);
+
+  useEffect(() => {
+    const cloned = presetData.frames.map((frame) => ({
+      joints: { ...frame.joints },
+      bones: frame.bones,
+      image: frame.image,
+    }));
+    setFrames(cloned);
+    setFrameIndex(0);
+    setLastDraw(null);
+  }, [presetData]);
+
+  const loopLabel = presetData.meta.loop === undefined ? "n/d" : presetData.meta.loop ? "sim" : "nao";
+  const fpsLabel = presetData.meta.fps ?? "n/d";
+  const directionLabel = presetData.meta.direction || "n/d";
+  const presetLabel = presetData.meta.name || currentPreset?.label || currentPreset?.id || "preset";
+  const skeletonLabel = presetData.meta.skeleton || "humanoid";
   const poseFileLabel = currentPreset?.file || "";
 
   const resolveFrameImage = useCallback(
@@ -284,7 +299,7 @@ const Rig2D = () => {
     async (idx: number) => {
       if (Platform.OS !== "web") return;
       const canvas = canvasRef.current;
-      const current = skeleton[idx];
+      const current = frames[idx];
       if (!canvas || !current || !Object.keys(current.joints).length) return;
 
       let bg: HTMLImageElement | undefined;
@@ -300,12 +315,12 @@ const Rig2D = () => {
       drawSkeleton(canvas, current.joints, current.bones, bg);
       setLastDraw(Date.now());
     },
-    [loadImage, presetId, resolveFrameImage, skeleton]
+    [frames, loadImage, presetId, resolveFrameImage]
   );
 
   useEffect(() => {
     renderFrame(frameIndex);
-  }, [renderFrame, frameIndex]);
+  }, [renderFrame, frameIndex, frames]);
 
   const handleRedraw = () => {
     renderFrame(frameIndex);
@@ -319,9 +334,84 @@ const Rig2D = () => {
   };
 
   const handleFrameChange = (idx: number) => {
-    if (idx < 0 || idx >= skeleton.length) return;
+    if (idx < 0 || idx >= frames.length) return;
     setFrameIndex(idx);
   };
+
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const getCanvasSize = () => {
+      const rect = canvas.getBoundingClientRect();
+      const width = canvas.width || rect.width || 0;
+      const height = canvas.height || rect.height || 0;
+      return { width, height };
+    };
+
+    const handlePointerDown = (event: MouseEvent) => {
+      const frame = frames[frameIndex];
+      if (!frame) return;
+      const rect = canvas.getBoundingClientRect();
+      const { width, height } = getCanvasSize();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const points = normalizePoints(frame.joints, width, height);
+      const radius = 12;
+      let selected: string | null = null;
+      let minDist = radius * radius;
+      Object.entries(points).forEach(([name, pt]) => {
+        const dx = pt.x - x;
+        const dy = pt.y - y;
+        const d2 = dx * dx + dy * dy;
+        if (d2 <= minDist) {
+          minDist = d2;
+          selected = name;
+        }
+      });
+      if (selected) {
+        setDraggingJoint(selected);
+      }
+    };
+
+    const handlePointerMove = (event: MouseEvent) => {
+      if (!draggingJoint) return;
+      const frame = frames[frameIndex];
+      if (!frame) return;
+      const rect = canvas.getBoundingClientRect();
+      const { width, height } = getCanvasSize();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const nx = clamp(x / width, 0, 1);
+      const ny = clamp(y / height, 0, 1);
+
+      setFrames((prev) => {
+        const current = prev[frameIndex];
+        if (!current) return prev;
+        const updated = [...prev];
+        updated[frameIndex] = {
+          ...current,
+          joints: { ...current.joints, [draggingJoint]: { x: nx, y: ny } },
+        };
+        return updated;
+      });
+    };
+
+    const handlePointerUp = () => {
+      if (draggingJoint) setDraggingJoint(null);
+    };
+
+    canvas.addEventListener("mousedown", handlePointerDown);
+    window.addEventListener("mousemove", handlePointerMove);
+    window.addEventListener("mouseup", handlePointerUp);
+
+    return () => {
+      canvas.removeEventListener("mousedown", handlePointerDown);
+      window.removeEventListener("mousemove", handlePointerMove);
+      window.removeEventListener("mouseup", handlePointerUp);
+    };
+  }, [draggingJoint, frameIndex, frames]);
 
   return (
     <View style={styles.page}>
@@ -368,8 +458,8 @@ const Rig2D = () => {
         <View style={styles.metaCard}>
           <Text style={styles.caption}>Dados carregados</Text>
           <Text style={styles.metaText}>
-            Quadros: {skeleton.length} | Juntas:{" "}
-            {skeleton[frameIndex] ? Object.keys(skeleton[frameIndex].joints).length : 0} | Ultimo desenho:{" "}
+            Quadros: {frames.length} | Juntas:{" "}
+            {frames[frameIndex] ? Object.keys(frames[frameIndex].joints).length : 0} | Ultimo desenho:{" "}
             {lastDraw ? new Date(lastDraw).toLocaleTimeString() : "ainda nao"}
           </Text>
           <Text style={styles.metaText}>
@@ -380,7 +470,7 @@ const Rig2D = () => {
             {loopLabel}
           </Text>
           <View style={styles.frameRow}>
-            {skeleton.map((_, idx) => {
+            {frames.map((_, idx) => {
               const active = idx === frameIndex;
               return (
                 <TouchableOpacity
