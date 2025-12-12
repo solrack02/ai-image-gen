@@ -2,12 +2,103 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Platform, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./styles";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const poseData = require("./mediaPipeRes.json");
-
 type Joint = { x: number; y: number };
 type SkeletonFrame = { joints: Record<string, Joint>; bones: [string, string][] };
 type SkeletonData = SkeletonFrame[];
+
+type PoseFrame = { joints: Record<string, Joint>; bones?: [string, string][] };
+type PoseFile =
+  | PoseFrame[]
+  | {
+      name?: string;
+      skeleton?: string;
+      direction?: string;
+      loop?: boolean;
+      fps?: number;
+      phases?: string[];
+      frames: PoseFrame[];
+    };
+
+type PoseMeta = {
+  name?: string;
+  skeleton?: string;
+  direction?: string;
+  loop?: boolean;
+  fps?: number;
+  phases?: string[];
+};
+
+const skeletonBones: Record<string, [string, string][]> = {
+  humanoid: [
+    ["head", "neck"],
+    ["neck", "shoulder_l"],
+    ["shoulder_l", "elbow_l"],
+    ["elbow_l", "hand_l"],
+    ["neck", "shoulder_r"],
+    ["shoulder_r", "elbow_r"],
+    ["elbow_r", "hand_r"],
+    ["neck", "hip"],
+    ["hip", "knee_l"],
+    ["knee_l", "foot_l"],
+    ["hip", "knee_r"],
+    ["knee_r", "foot_r"],
+  ],
+};
+
+type PresetItem = {
+  id: string;
+  label: string;
+  file: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any;
+};
+
+const presets: PresetItem[] = [
+  {
+    id: "walk_side_right",
+    label: "Walk Side Right",
+    file: "src/screens/rig2D/presets/walk_side_right.json",
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    data: require("./presets/walk_side_right.json"),
+  },
+  {
+    id: "run_side_right",
+    label: "Run Side Right",
+    file: "src/screens/rig2D/presets/run_side_right.json",
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    data: require("./presets/run_side_right.json"),
+  },
+];
+
+const buildSkeleton = (raw: PoseFile): { frames: SkeletonData; meta: PoseMeta } => {
+  if (Array.isArray(raw)) {
+    const frames = raw.map((frame) => ({
+      joints: frame.joints || {},
+      bones: frame.bones || skeletonBones.humanoid || [],
+    }));
+    return { frames, meta: {} };
+  }
+
+  const defaultBones =
+    (raw?.skeleton && skeletonBones[raw.skeleton]) || skeletonBones.humanoid || [];
+
+  const frames = (raw?.frames || []).map((frame) => ({
+    joints: frame.joints || {},
+    bones: frame.bones || defaultBones,
+  }));
+
+  return {
+    frames,
+    meta: {
+      name: raw?.name,
+      skeleton: raw?.skeleton,
+      direction: raw?.direction,
+      loop: raw?.loop,
+      fps: raw?.fps,
+      phases: raw?.phases,
+    },
+  };
+};
 
 const normalizePoints = (joints: Record<string, Joint>, width: number, height: number) =>
   Object.entries(joints).reduce<Record<string, { x: number; y: number }>>(
@@ -86,11 +177,19 @@ const Rig2D = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [lastDraw, setLastDraw] = useState<number | null>(null);
   const [frameIndex, setFrameIndex] = useState<number>(0);
+  const [presetId, setPresetId] = useState<string>(presets[0]?.id);
 
-  const skeleton = useMemo(() => {
-    const data = poseData as SkeletonData;
-    return Array.isArray(data) ? data : [];
-  }, []);
+  const currentPreset = presets.find((item) => item.id === presetId) || presets[0];
+  const { frames: skeleton, meta } = useMemo(
+    () => buildSkeleton(currentPreset?.data as PoseFile),
+    [currentPreset]
+  );
+  const loopLabel = meta.loop === undefined ? "n/d" : meta.loop ? "sim" : "nao";
+  const fpsLabel = meta.fps ?? "n/d";
+  const directionLabel = meta.direction || "n/d";
+  const presetLabel = meta.name || currentPreset?.label || currentPreset?.id || "preset";
+  const skeletonLabel = meta.skeleton || "humanoid";
+  const poseFileLabel = currentPreset?.file || "";
 
   useEffect(() => {
     if (Platform.OS !== "web") return;
@@ -110,6 +209,12 @@ const Rig2D = () => {
     setLastDraw(Date.now());
   };
 
+  const handlePresetChange = (id: string) => {
+    if (id === presetId) return;
+    setPresetId(id);
+    setFrameIndex(0);
+  };
+
   const handleFrameChange = (idx: number) => {
     if (idx < 0 || idx >= skeleton.length) return;
     setFrameIndex(idx);
@@ -123,6 +228,22 @@ const Rig2D = () => {
           <TouchableOpacity style={styles.refresh} onPress={handleRedraw}>
             <Text style={styles.refreshText}>Redesenhar</Text>
           </TouchableOpacity>
+          <View style={styles.frameRow}>
+            {presets.map((preset) => {
+              const active = preset.id === presetId;
+              return (
+                <TouchableOpacity
+                  key={preset.id}
+                  style={[styles.frameButton, active && styles.frameButtonActive]}
+                  onPress={() => handlePresetChange(preset.id)}
+                >
+                  <Text style={[styles.frameButtonText, active && styles.frameButtonTextActive]}>
+                    {preset.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
       </View>
 
@@ -149,7 +270,11 @@ const Rig2D = () => {
             {lastDraw ? new Date(lastDraw).toLocaleTimeString() : "ainda nao"}
           </Text>
           <Text style={styles.metaText}>
-            Arquivo: src/screens/rig2D/mediaPipeRes.json
+            Arquivo: {poseFileLabel}
+          </Text>
+          <Text style={styles.metaText}>
+            Preset: {presetLabel} | Skeleton: {skeletonLabel} | Direcao: {directionLabel} | FPS: {fpsLabel} | Loop:{" "}
+            {loopLabel}
           </Text>
           <View style={styles.frameRow}>
             {skeleton.map((_, idx) => {
