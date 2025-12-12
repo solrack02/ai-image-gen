@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Platform, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Platform, Image as RNImage, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./styles";
 
 type Joint = { x: number; y: number };
-type SkeletonFrame = { joints: Record<string, Joint>; bones: [string, string][] };
+type SkeletonFrame = { joints: Record<string, Joint>; bones: [string, string][]; image?: string };
 type SkeletonData = SkeletonFrame[];
 
 type PoseFrame = { joints: Record<string, Joint>; bones?: [string, string][] };
@@ -52,6 +52,24 @@ type PresetItem = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
 };
+
+type AssetType = number | { uri?: string } | { default?: string } | string;
+
+const presetImages: Record<string, Record<number, AssetType>> = {
+  // frame index (1-based) -> require
+  walk_side_right: {
+    1: require("./presets/images/walk_side_right/frame1.png"),
+    2: require("./presets/images/walk_side_right/frame2.png"),
+    3: require("./presets/images/walk_side_right/frame3.png"),
+    4: require("./presets/images/walk_side_right/frame4.png"),
+    5: require("./presets/images/walk_side_right/frame5.png"),
+    6: require("./presets/images/walk_side_right/frame6.png"),
+    7: require("./presets/images/walk_side_right/frame7.png"),
+    8: require("./presets/images/walk_side_right/frame8.png"),
+  },
+};
+
+const backgroundAlpha = 0.30;
 
 const presets: PresetItem[] = [
   {
@@ -115,7 +133,8 @@ const normalizePoints = (joints: Record<string, Joint>, width: number, height: n
 const drawSkeleton = (
   canvas: HTMLCanvasElement,
   joints: Record<string, Joint>,
-  bones: [string, string][]
+  bones: [string, string][],
+  background?: HTMLImageElement
 ) => {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
@@ -128,6 +147,26 @@ const drawSkeleton = (
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = "#050505";
   ctx.fillRect(0, 0, width, height);
+
+  if (background && background.complete) {
+    ctx.save();
+    ctx.globalAlpha = backgroundAlpha;
+    const imgRatio = background.width / background.height;
+    const canvasRatio = width / height;
+    let drawW = width;
+    let drawH = height;
+    let offsetX = 0;
+    let offsetY = 0;
+    if (imgRatio > canvasRatio) {
+      drawH = width / imgRatio;
+      offsetY = (height - drawH) / 2;
+    } else {
+      drawW = height * imgRatio;
+      offsetX = (width - drawW) / 2;
+    }
+    ctx.drawImage(background, offsetX, offsetY, drawW, drawH);
+    ctx.restore();
+  }
 
   const points = normalizePoints(joints, width, height);
 
@@ -175,6 +214,7 @@ const drawSkeleton = (
 
 const Rig2D = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const imageCacheRef = useRef<Map<string, HTMLImageElement>>(new Map());
   const [lastDraw, setLastDraw] = useState<number | null>(null);
   const [frameIndex, setFrameIndex] = useState<number>(0);
   const [presetId, setPresetId] = useState<string>(presets[0]?.id);
@@ -191,28 +231,91 @@ const Rig2D = () => {
   const skeletonLabel = meta.skeleton || "humanoid";
   const poseFileLabel = currentPreset?.file || "";
 
+  const resolveFrameImage = useCallback(
+    (preset: string, frameIdx: number) => {
+      const presetMap = presetImages[preset];
+      const asset = presetMap?.[frameIdx + 1]; // frame buttons are 1-based in files
+      if (!asset) return undefined;
+
+      if (typeof asset === "number" && RNImage.resolveAssetSource) {
+        const resolved = RNImage.resolveAssetSource(asset);
+        if (resolved?.uri) return resolved.uri;
+      }
+
+      if (typeof asset === "object") {
+        if ("uri" in asset && typeof asset.uri === "string") return asset.uri;
+        if ("default" in asset && typeof (asset as { default?: unknown }).default === "string") {
+          return (asset as { default: string }).default;
+        }
+      }
+
+      if (typeof asset === "string") return asset;
+      return undefined;
+    },
+    []
+  );
+
+  const loadImage = useCallback(
+    (src: string) =>
+      new Promise<HTMLImageElement>((resolve, reject) => {
+        const DomImage = (globalThis as typeof globalThis & { Image?: typeof Image }).Image;
+        if (!DomImage) {
+          reject(new Error("Image constructor not available"));
+          return;
+        }
+        const cache = imageCacheRef.current;
+        const cached = cache.get(src);
+        if (cached && cached.complete) {
+          resolve(cached);
+          return;
+        }
+        const img = new DomImage();
+        img.onload = () => {
+          cache.set(src, img);
+          resolve(img);
+        };
+        img.onerror = (err) => reject(err);
+        img.src = src;
+      }),
+    []
+  );
+
+  const renderFrame = useCallback(
+    async (idx: number) => {
+      if (Platform.OS !== "web") return;
+      const canvas = canvasRef.current;
+      const current = skeleton[idx];
+      if (!canvas || !current || !Object.keys(current.joints).length) return;
+
+      let bg: HTMLImageElement | undefined;
+      const uri = resolveFrameImage(presetId, idx);
+      if (uri) {
+        try {
+          bg = await loadImage(uri);
+        } catch (err) {
+          console.warn("Falha ao carregar imagem do frame", uri, err);
+        }
+      }
+
+      drawSkeleton(canvas, current.joints, current.bones, bg);
+      setLastDraw(Date.now());
+    },
+    [loadImage, presetId, resolveFrameImage, skeleton]
+  );
+
   useEffect(() => {
-    if (Platform.OS !== "web") return;
-    const canvas = canvasRef.current;
-    const current = skeleton[frameIndex];
-    if (!canvas || !current || !Object.keys(current.joints).length) return;
-    drawSkeleton(canvas, current.joints, current.bones);
-    setLastDraw(Date.now());
-  }, [skeleton, frameIndex]);
+    renderFrame(frameIndex);
+  }, [renderFrame, frameIndex]);
 
   const handleRedraw = () => {
-    if (Platform.OS !== "web") return;
-    const canvas = canvasRef.current;
-    const current = skeleton[frameIndex];
-    if (!canvas || !current || !Object.keys(current.joints).length) return;
-    drawSkeleton(canvas, current.joints, current.bones);
-    setLastDraw(Date.now());
+    renderFrame(frameIndex);
   };
 
   const handlePresetChange = (id: string) => {
     if (id === presetId) return;
     setPresetId(id);
     setFrameIndex(0);
+    setLastDraw(null);
   };
 
   const handleFrameChange = (idx: number) => {
