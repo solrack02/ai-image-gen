@@ -1,19 +1,37 @@
 {
-  "poseLandmarks": [
-    {
-      "x": 0.512,
-      "y": 0.132,
-      "z": -0.084,
-      "visibility": 0.99
-    }
-  ],
-  "poseWorldLandmarks": [
-    {
-      "x": 0.12,
-      "y": 0.84,
-      "z": -0.03,
-      "visibility": 0.99
-    }
-  ],
-  "segmentationMask": null
+  "joints": {
+    "head": { "x": 0.52, "y": 0.12 },
+    "neck": { "x": 0.50, "y": 0.22 },
+
+    "shoulder_l": { "x": 0.45, "y": 0.25 },
+    "elbow_l": { "x": 0.42, "y": 0.38 },
+    "hand_l": { "x": 0.40, "y": 0.50 },
+
+    "shoulder_r": { "x": 0.55, "y": 0.25 },
+    "elbow_r": { "x": 0.58, "y": 0.38 },
+    "hand_r": { "x": 0.60, "y": 0.50 },
+
+    "hip": { "x": 0.50, "y": 0.45 },
+
+    "knee_l": { "x": 0.47, "y": 0.65 },
+    "foot_l": { "x": 0.45, "y": 0.85 },
+
+    "knee_r": { "x": 0.53, "y": 0.65 },
+    "foot_r": { "x": 0.55, "y": 0.85 }
+  },
+
+  "bones": [
+    ["head", "neck"],
+    ["neck", "shoulder_l"],
+    ["shoulder_l", "elbow_l"],
+    ["elbow_l", "hand_l"],
+    ["neck", "shoulder_r"],
+    ["shoulder_r", "elbow_r"],
+    ["elbow_r", "hand_r"],
+    ["neck", "hip"],
+    ["hip", "knee_l"],
+    ["knee_l", "foot_l"],
+    ["hip", "knee_r"],
+    ["knee_r", "foot_r"]
+  ]
 }
