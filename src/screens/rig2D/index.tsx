@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Platform, Image as RNImage, Text, TouchableOpacity, View } from "react-native";
+import Navbar from "../../../components/Navbar";
 import { styles } from "./styles";
 
 type Joint = { x: number; y: number };
@@ -491,6 +492,8 @@ const Rig2D = () => {
 
   return (
     <View style={styles.page}>
+      <Navbar title="Rig 2D" subtitle="Fissium | AI Studio" />
+
       <View style={styles.header}>
         <Text style={styles.title}>Rig 2D - MediaPipe</Text>
         <View style={styles.actions}>
