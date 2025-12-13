@@ -136,17 +136,21 @@ const drawSkeleton = (
   canvas: HTMLCanvasElement,
   joints: Record<string, Joint>,
   bones: [string, string][],
-  background?: HTMLImageElement
+  background?: HTMLImageElement,
+  size?: { width: number; height: number }
 ) => {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
 
-  const width = canvas.clientWidth || canvas.width;
-  const height = Math.round(width * (9 / 16));
-  canvas.width = width;
-  canvas.height = height;
+  const dpr = typeof window !== "undefined" && window.devicePixelRatio ? window.devicePixelRatio : 1;
+  const width = size?.width || canvas.clientWidth || canvas.width || 0;
+  const height = size?.height || Math.round(width * (9 / 16));
+
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
   canvas.style.width = `${width}px`;
   canvas.style.height = `${height}px`;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   ctx.clearRect(0, 0, width, height);
   ctx.fillStyle = "#050505";
@@ -224,6 +228,7 @@ const Rig2D = () => {
   const [presetId, setPresetId] = useState<string>(presets[0]?.id);
   const [frames, setFrames] = useState<SkeletonData>([]);
   const [draggingJoint, setDraggingJoint] = useState<string | null>(null);
+  console.log("draggingJoint",draggingJoint);
 
   const currentPreset = presets.find((item) => item.id === presetId) || presets[0];
   const presetData = useMemo(() => buildSkeleton(currentPreset?.data as PoseFile), [currentPreset]);
@@ -301,6 +306,9 @@ const Rig2D = () => {
       const canvas = canvasRef.current;
       const current = frames[idx];
       if (!canvas || !current || !Object.keys(current.joints).length) return;
+      const rect = canvas.getBoundingClientRect();
+      const width = rect.width || canvas.clientWidth || 0;
+      const height = rect.height || rect.width * (9 / 16);
 
       let bg: HTMLImageElement | undefined;
       const uri = resolveFrameImage(presetId, idx);
@@ -312,7 +320,7 @@ const Rig2D = () => {
         }
       }
 
-      drawSkeleton(canvas, current.joints, current.bones, bg);
+      drawSkeleton(canvas, current.joints, current.bones, bg, { width, height });
       setLastDraw(Date.now());
     },
     [frames, loadImage, presetId, resolveFrameImage]
@@ -345,8 +353,8 @@ const Rig2D = () => {
 
     const getCanvasSize = () => {
       const rect = canvas.getBoundingClientRect();
-      const width = canvas.width || rect.width || 0;
-      const height = canvas.height || rect.height || 0;
+      const width = rect.width || canvas.clientWidth || 0;
+      const height = rect.height || Math.round(width * (9 / 16));
       return { width, height };
     };
 
