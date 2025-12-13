@@ -66,6 +66,7 @@ const presetImages: Record<string, Record<number, AssetType>> = {
     6: require("./presets/images/walk_side_right/frame6.png"),
     7: require("./presets/images/walk_side_right/frame7.png"),
     8: require("./presets/images/walk_side_right/frame8.png"),
+    9: require("./presets/images/walk_side_right/frame9.png"),
   },
 };
 
