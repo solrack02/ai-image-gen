@@ -67,6 +67,8 @@ export const styles = StyleSheet.create({
     fontWeight: "700",
   },
   cropsList: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 10,
   },
   cropsEmpty: {
@@ -76,6 +78,7 @@ export const styles = StyleSheet.create({
   },
   cropsItem: {
     gap: 4,
+    width: "46%",
   },
   cropsThumb: {
     width: "100%",
@@ -84,7 +87,7 @@ export const styles = StyleSheet.create({
     backgroundColor: palette.canvas,
   },
   cropsLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: palette.text,
     fontFamily: fontSans,
   },

@@ -1,35 +1,51 @@
-import * as ImagePicker from "expo-image-picker";
-import * as ImageManipulator from "expo-image-manipulator";
 import * as FileSystem from "expo-file-system";
+import * as ImageManipulator from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import {
+  GestureResponderEvent,
+  Image,
+  Platform,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
-  Image,
-  GestureResponderEvent,
-  Platform,
 } from "react-native";
-import { setData, useData } from "../../centralData";
 import Navbar from "../../../components/Navbar";
+import { setData, useData } from "../../centralData";
 import { styles } from "./styles";
 
 const Cutout = () => {
   const generationImages = useData((ct) => ct.system.generation.images || []);
   const normalizedRef = useRef(false);
-  const [dragStart, setDragStart] = React.useState<{ x: number; y: number } | null>(null);
-  const [bbox, setBbox] = React.useState<{ x: number; y: number; width: number; height: number } | null>(null);
-  const [displaySize, setDisplaySize] = React.useState<{ width: number; height: number }>({
+  const [dragStart, setDragStart] = React.useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+  const [bbox, setBbox] = React.useState<{
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [displaySize, setDisplaySize] = React.useState<{
+    width: number;
+    height: number;
+  }>({
     width: 0,
     height: 0,
   });
-  const [naturalSize, setNaturalSize] = React.useState<{ width: number; height: number }>({
+  const [naturalSize, setNaturalSize] = React.useState<{
+    width: number;
+    height: number;
+  }>({
     width: 0,
     height: 0,
   });
   const [isCropping, setIsCropping] = React.useState(false);
-  const [selectedBaseId, setSelectedBaseId] = React.useState<string | null>(null);
+  const [selectedBaseId, setSelectedBaseId] = React.useState<string | null>(
+    null
+  );
 
   const items = useMemo(
     () =>
@@ -40,7 +56,9 @@ const Cutout = () => {
           : `data:image/png;base64,${rawData}`;
         const id = (img as any)?.id || `img-${idx}`;
         const parentId = (img as any)?.parentId || null;
-        const isCrop = Boolean(parentId) || (img?.prompt || "").toLowerCase().includes("crop");
+        const isCrop =
+          Boolean(parentId) ||
+          (img?.prompt || "").toLowerCase().includes("crop");
         return {
           key: `img-${idx}`,
           id,
@@ -55,11 +73,15 @@ const Cutout = () => {
   );
 
   const croppedItems = useMemo(
-    () => items.filter((item) => item.isCrop && item.parentId === selectedBaseId),
+    () =>
+      items.filter((item) => item.isCrop && item.parentId === selectedBaseId),
     [items, selectedBaseId]
   );
 
-  const baseItems = useMemo(() => items.filter((item) => !item.isCrop), [items]);
+  const baseItems = useMemo(
+    () => items.filter((item) => !item.isCrop),
+    [items]
+  );
 
   const firstBaseId = useMemo(() => baseItems[0]?.id || null, [baseItems]);
 
@@ -79,7 +101,8 @@ const Cutout = () => {
         const existingId = (img as any)?.id;
         const isCrop =
           Boolean((img as any)?.parentId) ||
-          (typeof img?.prompt === "string" && img.prompt.toLowerCase().includes("crop"));
+          (typeof img?.prompt === "string" &&
+            img.prompt.toLowerCase().includes("crop"));
         const newId = existingId || `${isCrop ? "crop" : "base"}-${now}-${idx}`;
         return { ...img, id: newId, parentId: (img as any)?.parentId || null };
       });
@@ -162,7 +185,8 @@ const Cutout = () => {
 
   const handleAddImage = useCallback(async () => {
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
         console.warn("Permissao negada para acessar a galeria");
         return;
@@ -228,11 +252,20 @@ const Cutout = () => {
     const offsetY = (containerH - renderH) / 2;
 
     // Ajusta bbox para dentro da area efetiva da imagem renderizada (removendo letterboxing)
-    const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
+    const clamp = (val: number, min: number, max: number) =>
+      Math.max(min, Math.min(max, val));
     const relX = clamp(bbox.x - offsetX, 0, renderW);
     const relY = clamp(bbox.y - offsetY, 0, renderH);
-    const relW = clamp(bbox.width - Math.max(0, offsetX - bbox.x), 0, renderW - relX);
-    const relH = clamp(bbox.height - Math.max(0, offsetY - bbox.y), 0, renderH - relY);
+    const relW = clamp(
+      bbox.width - Math.max(0, offsetX - bbox.x),
+      0,
+      renderW - relX
+    );
+    const relH = clamp(
+      bbox.height - Math.max(0, offsetY - bbox.y),
+      0,
+      renderH - relY
+    );
 
     const minSize = 4;
     if (relW < minSize || relH < minSize) {
@@ -244,8 +277,14 @@ const Cutout = () => {
     try {
       const originX = Math.max(0, Math.round((relX / renderW) * naturalW));
       const originY = Math.max(0, Math.round((relY / renderH) * naturalH));
-      const width = Math.max(1, Math.min(naturalW - originX, Math.round((relW / renderW) * naturalW)));
-      const height = Math.max(1, Math.min(naturalH - originY, Math.round((relH / renderH) * naturalH)));
+      const width = Math.max(
+        1,
+        Math.min(naturalW - originX, Math.round((relW / renderW) * naturalW))
+      );
+      const height = Math.max(
+        1,
+        Math.min(naturalH - originY, Math.round((relH / renderH) * naturalH))
+      );
 
       console.log("Crop sizes", {
         bbox,
@@ -320,7 +359,10 @@ const Cutout = () => {
 
         console.log("Crop result", {
           uri: result.uri,
-          size: result.width && result.height ? `${result.width}x${result.height}` : "n/d",
+          size:
+            result.width && result.height
+              ? `${result.width}x${result.height}`
+              : "n/d",
           hasBase64: !!result.base64,
         });
 
@@ -395,38 +437,50 @@ const Cutout = () => {
 
             <View style={styles.cropsPanel}>
               <Text style={styles.cropsTitle}>Recortes</Text>
-              <ScrollView contentContainerStyle={styles.cropsList}>
+              <View style={styles.cropsList}>
                 {croppedItems.length === 0 ? (
                   <Text style={styles.cropsEmpty}>Nenhum recorte ainda</Text>
                 ) : (
                   croppedItems.map((crop) => (
                     <View key={crop.key} style={styles.cropsItem}>
-                      <Image source={{ uri: crop.uri }} style={styles.cropsThumb} />
+                      <Image
+                        source={{ uri: crop.uri }}
+                        style={styles.cropsThumb}
+                        resizeMode="contain"
+                      />
                       <Text style={styles.cropsLabel} numberOfLines={1}>
                         {crop.label}
                       </Text>
                     </View>
                   ))
                 )}
-              </ScrollView>
+              </View>
             </View>
           </View>
 
           <View style={styles.actionsRow}>
             <Text style={styles.helpText}>
-              Arraste para selecionar a area de corte. Depois clique em cortar para gerar nova imagem.
+              Arraste para selecionar a area de corte. Depois clique em cortar
+              para gerar nova imagem.
             </Text>
             <TouchableOpacity
-              style={[styles.primaryButton, (!bbox || isCropping) && styles.primaryButtonDisabled]}
+              style={[
+                styles.primaryButton,
+                (!bbox || isCropping) && styles.primaryButtonDisabled,
+              ]}
               onPress={handleCrop}
               disabled={!bbox || isCropping}
             >
-              <Text style={styles.primaryButtonText}>{isCropping ? "Cortando..." : "Cortar"}</Text>
+              <Text style={styles.primaryButtonText}>
+                {isCropping ? "Cortando..." : "Cortar"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
       ) : (
-        <Text style={styles.emptyText}>Selecione ou adicione uma imagem para cortar.</Text>
+        <Text style={styles.emptyText}>
+          Selecione ou adicione uma imagem para cortar.
+        </Text>
       )}
 
       <ScrollView contentContainerStyle={styles.grid}>
