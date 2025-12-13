@@ -349,25 +349,20 @@ const Rig2D = () => {
 
   useEffect(() => {
     if (Platform.OS !== "web") return;
+    const totalFrames = frames.length;
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!frames.length) return;
+      if (!totalFrames) return;
       const target = event.target as HTMLElement | null;
       if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
         return;
       }
 
       if (event.key === "ArrowRight") {
-        setFrameIndex((prev) => {
-          const next = Math.min(prev + 1, frames.length - 1);
-          if (next !== prev) event.preventDefault();
-          return next;
-        });
+        event.preventDefault();
+        setFrameIndex((prev) => (prev + 1) % totalFrames);
       } else if (event.key === "ArrowLeft") {
-        setFrameIndex((prev) => {
-          const next = Math.max(prev - 1, 0);
-          if (next !== prev) event.preventDefault();
-          return next;
-        });
+        event.preventDefault();
+        setFrameIndex((prev) => (prev - 1 + totalFrames) % totalFrames);
       }
     };
 
