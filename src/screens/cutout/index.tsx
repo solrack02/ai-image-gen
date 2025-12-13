@@ -192,31 +192,41 @@ const Cutout = () => {
       return;
     }
 
+    const containerW = displaySize.width;
+    const containerH = displaySize.height;
+    const naturalW = naturalSize.width;
+    const naturalH = naturalSize.height;
+    const scale = Math.min(containerW / naturalW, containerH / naturalH);
+    const renderW = naturalW * scale;
+    const renderH = naturalH * scale;
+    const offsetX = (containerW - renderW) / 2;
+    const offsetY = (containerH - renderH) / 2;
+
+    // Ajusta bbox para dentro da area efetiva da imagem renderizada (removendo letterboxing)
+    const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
+    const relX = clamp(bbox.x - offsetX, 0, renderW);
+    const relY = clamp(bbox.y - offsetY, 0, renderH);
+    const relW = clamp(bbox.width - Math.max(0, offsetX - bbox.x), 0, renderW - relX);
+    const relH = clamp(bbox.height - Math.max(0, offsetY - bbox.y), 0, renderH - relY);
+
     const minSize = 4;
-    if (bbox.width < minSize || bbox.height < minSize) {
-      console.warn("Crop: area muito pequena", bbox);
+    if (relW < minSize || relH < minSize) {
+      console.warn("Crop: area muito pequena", { relW, relH, bbox });
       return;
     }
 
     setIsCropping(true);
     try {
-      const scaleX = naturalSize.width / displaySize.width;
-      const scaleY = naturalSize.height / displaySize.height;
-      const originX = Math.max(0, Math.round(bbox.x * scaleX));
-      const originY = Math.max(0, Math.round(bbox.y * scaleY));
-      const width = Math.max(
-        1,
-        Math.min(naturalSize.width - originX, Math.round(bbox.width * scaleX))
-      );
-      const height = Math.max(
-        1,
-        Math.min(naturalSize.height - originY, Math.round(bbox.height * scaleY))
-      );
+      const originX = Math.max(0, Math.round((relX / renderW) * naturalW));
+      const originY = Math.max(0, Math.round((relY / renderH) * naturalH));
+      const width = Math.max(1, Math.min(naturalW - originX, Math.round((relW / renderW) * naturalW)));
+      const height = Math.max(1, Math.min(naturalH - originY, Math.round((relH / renderH) * naturalH)));
 
       console.log("Crop sizes", {
         bbox,
         displaySize,
         naturalSize,
+        render: { renderW, renderH, offsetX, offsetY },
         crop: { originX, originY, width, height },
       });
 
