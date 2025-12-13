@@ -347,6 +347,36 @@ const Rig2D = () => {
     setFrameIndex(idx);
   };
 
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!frames.length) return;
+      const target = event.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) {
+        return;
+      }
+
+      if (event.key === "ArrowRight") {
+        setFrameIndex((prev) => {
+          const next = Math.min(prev + 1, frames.length - 1);
+          if (next !== prev) event.preventDefault();
+          return next;
+        });
+      } else if (event.key === "ArrowLeft") {
+        setFrameIndex((prev) => {
+          const next = Math.max(prev - 1, 0);
+          if (next !== prev) event.preventDefault();
+          return next;
+        });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [frames.length]);
+
   const handleCopyJson = async () => {
     const exportData = {
       name: presetData.meta.name || presetId,
