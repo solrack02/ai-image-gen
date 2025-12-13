@@ -228,7 +228,8 @@ const Rig2D = () => {
   const [presetId, setPresetId] = useState<string>(presets[0]?.id);
   const [frames, setFrames] = useState<SkeletonData>([]);
   const [draggingJoint, setDraggingJoint] = useState<string | null>(null);
-  console.log("draggingJoint",draggingJoint);
+  // console.log("draggingJoint",draggingJoint);
+  // console.log("frames",frames);
 
   const currentPreset = presets.find((item) => item.id === presetId) || presets[0];
   const presetData = useMemo(() => buildSkeleton(currentPreset?.data as PoseFile), [currentPreset]);
@@ -346,6 +347,47 @@ const Rig2D = () => {
     setFrameIndex(idx);
   };
 
+  const handleCopyJson = async () => {
+    const exportData = {
+      name: presetData.meta.name || presetId,
+      skeleton: presetData.meta.skeleton || "humanoid",
+      direction: presetData.meta.direction,
+      loop: presetData.meta.loop,
+      fps: presetData.meta.fps,
+      phases: presetData.meta.phases,
+      frames: frames.map((frame) => ({
+        joints: frame.joints,
+        bones: frame.bones,
+      })),
+    };
+    const payload = JSON.stringify(exportData, null, 2);
+
+    const navClipboard = typeof navigator !== "undefined" ? navigator.clipboard : undefined;
+    if (Platform.OS === "web" && navClipboard?.writeText) {
+      try {
+        await navClipboard.writeText(payload);
+        setLastDraw(Date.now());
+        return;
+      } catch (err) {
+        console.warn("Clipboard API falhou, tentando fallback", err);
+      }
+    }
+
+    try {
+      const textarea = document.createElement("textarea");
+      textarea.value = payload;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+      setLastDraw(Date.now());
+    } catch (err) {
+      console.warn("Fallback de copia falhou", err);
+    }
+  };
+
   useEffect(() => {
     if (Platform.OS !== "web") return;
     const canvas = canvasRef.current;
@@ -428,6 +470,9 @@ const Rig2D = () => {
         <View style={styles.actions}>
           <TouchableOpacity style={styles.refresh} onPress={handleRedraw}>
             <Text style={styles.refreshText}>Redesenhar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.refresh} onPress={handleCopyJson}>
+            <Text style={styles.refreshText}>Copiar JSON</Text>
           </TouchableOpacity>
           <View style={styles.frameRow}>
             {presets.map((preset) => {
