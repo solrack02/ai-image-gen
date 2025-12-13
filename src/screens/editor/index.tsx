@@ -1,5 +1,5 @@
 import { requestImgToImg, requestTxtToImg } from "@/actions";
-import { goTo, setData, useData } from "@/src/centralData";
+import { setData, useData } from "@/src/centralData";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   Image,
@@ -57,8 +57,17 @@ const Editor = () => {
   const [contentStyle, setContentStyle] = useState(contentOptions[0]);
 
   const previews = useMemo(() => {
-    if (generation.images?.length) {
-      return generation.images.map((img: any, idx: number) => {
+    const isCrop = (img: any) =>
+      Boolean((img as any)?.parentId) || typeof img?.prompt === "string"
+        ? img.prompt.toLowerCase().includes("crop")
+        : false;
+
+    const baseImages = (generation.images || []).filter(
+      (img: any) => !isCrop(img)
+    );
+
+    if (baseImages.length) {
+      return baseImages.map((img: any, idx: number) => {
         const rawData = img?.data || "";
         const uri = rawData.startsWith("data:")
           ? rawData
@@ -172,7 +181,9 @@ const Editor = () => {
   const handleRemoveGenerated = (idx: number) => {
     setData((ct) => {
       const images = ct.system.generation.images || [];
-      ct.system.generation.images = images.filter((_, imageIdx) => imageIdx !== idx);
+      ct.system.generation.images = images.filter(
+        (_, imageIdx) => imageIdx !== idx
+      );
     });
   };
 
@@ -202,7 +213,9 @@ const Editor = () => {
                     style={[styles.pill, active && styles.pillActive]}
                     onPress={() => setAspectRatio(opt)}
                   >
-                    <Text style={[styles.pillText, active && styles.pillTextActive]}>
+                    <Text
+                      style={[styles.pillText, active && styles.pillTextActive]}
+                    >
                       {opt}
                     </Text>
                   </TouchableOpacity>
@@ -222,7 +235,9 @@ const Editor = () => {
                     style={[styles.pill, active && styles.pillActive]}
                     onPress={() => setContentStyle(opt)}
                   >
-                    <Text style={[styles.pillText, active && styles.pillTextActive]}>
+                    <Text
+                      style={[styles.pillText, active && styles.pillTextActive]}
+                    >
                       {opt}
                     </Text>
                   </TouchableOpacity>
@@ -278,7 +293,13 @@ const Editor = () => {
               <View key={item.id} style={styles.previewCard}>
                 <Image source={{ uri: item.uri }} style={styles.previewImage} />
                 <View style={styles.previewOverlay}>
-                  <Text style={styles.previewCaption}>{item.caption}</Text>
+                  <ScrollView
+                    style={{height: 80}}
+                    contentContainerStyle={{ padding: 8 }}
+                    showsVerticalScrollIndicator={false}
+                  >
+                    <Text style={styles.previewCaption}>{item.caption}</Text>
+                  </ScrollView>
 
                   <View style={styles.header}>
                     {item.isGenerated ? (
