@@ -1,12 +1,35 @@
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
+import * as FileSystem from "expo-file-system";
 import React, { useCallback, useMemo } from "react";
-import { ScrollView, Text, TouchableOpacity, View, Image } from "react-native";
+import {
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+  Image,
+  GestureResponderEvent,
+} from "react-native";
 import { setData, useData } from "../../centralData";
 import Navbar from "../../../components/Navbar";
 import { styles } from "./styles";
 
 const Cutout = () => {
   const generationImages = useData((ct) => ct.system.generation.images || []);
+  const [selectedIdx, setSelectedIdx] = React.useState<number | null>(
+    generationImages.length ? 0 : null
+  );
+  const [dragStart, setDragStart] = React.useState<{ x: number; y: number } | null>(null);
+  const [bbox, setBbox] = React.useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const [displaySize, setDisplaySize] = React.useState<{ width: number; height: number }>({
+    width: 0,
+    height: 0,
+  });
+  const [naturalSize, setNaturalSize] = React.useState<{ width: number; height: number }>({
+    width: 0,
+    height: 0,
+  });
+  const [isCropping, setIsCropping] = React.useState(false);
 
   const items = useMemo(
     () =>
@@ -19,10 +42,53 @@ const Cutout = () => {
           key: `img-${idx}`,
           uri,
           label: img?.prompt || `Imagem ${idx + 1}`,
+          raw: rawData,
         };
       }),
     [generationImages]
   );
+
+  const selectedItem = selectedIdx != null ? items[selectedIdx] : null;
+
+  const resetBbox = () => {
+    setDragStart(null);
+    setBbox(null);
+  };
+
+  const handleImageLayout = (e: any) => {
+    const { width, height } = e.nativeEvent.layout;
+    setDisplaySize({ width, height });
+  };
+
+  const handleImageLoaded = (e: any) => {
+    const w = e?.nativeEvent?.source?.width || 0;
+    const h = e?.nativeEvent?.source?.height || 0;
+    if (w && h) {
+      setNaturalSize({ width: w, height: h });
+    }
+  };
+
+  const handleStartDrag = (e: GestureResponderEvent) => {
+    const { locationX, locationY } = e.nativeEvent;
+    setDragStart({ x: locationX, y: locationY });
+    setBbox({ x: locationX, y: locationY, width: 0, height: 0 });
+  };
+
+  const handleMoveDrag = (e: GestureResponderEvent) => {
+    if (!dragStart) return;
+    const { locationX, locationY } = e.nativeEvent;
+    const x = Math.min(locationX, dragStart.x);
+    const y = Math.min(locationY, dragStart.y);
+    const width = Math.abs(locationX - dragStart.x);
+    const height = Math.abs(locationY - dragStart.y);
+    setBbox({ x, y, width, height });
+  };
+
+  const handleEndDrag = (e: GestureResponderEvent) => {
+    if (!dragStart) return;
+    handleMoveDrag(e);
+    setDragStart(null);
+  };
 
   const handleAddImage = useCallback(async () => {
     try {
@@ -56,20 +122,128 @@ const Cutout = () => {
     }
   }, []);
 
+  const handleSelectThumb = (idx: number) => {
+    setSelectedIdx(idx);
+    resetBbox();
+  };
+
+  const handleCrop = useCallback(async () => {
+    if (!selectedItem || !bbox || !bbox.width || !bbox.height) return;
+    if (!displaySize.width || !displaySize.height) return;
+    if (!naturalSize.width || !naturalSize.height) return;
+    setIsCropping(true);
+    try {
+      const scaleX = naturalSize.width / displaySize.width;
+      const scaleY = naturalSize.height / displaySize.height;
+      const originX = Math.max(0, bbox.x * scaleX);
+      const originY = Math.max(0, bbox.y * scaleY);
+      const width = Math.min(naturalSize.width - originX, bbox.width * scaleX);
+      const height = Math.min(naturalSize.height - originY, bbox.height * scaleY);
+
+      const base64Data = selectedItem.raw.startsWith("data:")
+        ? selectedItem.raw.split(",")[1] || ""
+        : selectedItem.raw;
+
+      const fileUri = `${FileSystem.cacheDirectory}cutout-${Date.now()}.png`;
+      await FileSystem.writeAsStringAsync(fileUri, base64Data, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+      const result = await ImageManipulator.manipulateAsync(
+        fileUri,
+        [{ crop: { originX, originY, width, height } }],
+        { compress: 1, format: ImageManipulator.SaveFormat.PNG, base64: true }
+      );
+
+      if (result.base64) {
+        setData((ct) => {
+          const prev = ct.system.generation.images || [];
+          ct.system.generation.images = [
+            ...prev,
+            { data: result.base64 as string, prompt: `${selectedItem.label} | Crop` },
+          ];
+        });
+      }
+    } catch (error) {
+      console.error("Falha ao cortar imagem", error);
+    } finally {
+      setIsCropping(false);
+    }
+  }, [bbox, displaySize.height, displaySize.width, naturalSize.height, naturalSize.width, selectedItem]);
+
   return (
     <View style={styles.container}>
       <Navbar title="Cutout" subtitle="Fissium | AI Studio" />
+
       <Text style={styles.title}>Fatiar Personagem</Text>
 
-      <ScrollView contentContainerStyle={styles.grid}>
-        {items.map((item) => (
-          <View key={item.key} style={styles.thumbCard}>
-            <Image source={{ uri: item.uri }} style={styles.thumbnail} />
-            <Text style={styles.thumbLabel} numberOfLines={1}>
-              {item.label}
-            </Text>
+      {selectedItem ? (
+        <View style={styles.workspace}>
+          <View
+            style={styles.previewArea}
+            onLayout={handleImageLayout}
+            onStartShouldSetResponder={() => true}
+            onMoveShouldSetResponder={() => true}
+            onResponderGrant={handleStartDrag}
+            onResponderMove={handleMoveDrag}
+            onResponderRelease={handleEndDrag}
+            onResponderTerminate={handleEndDrag}
+          >
+            <Image
+              source={{ uri: selectedItem.uri }}
+              style={styles.largeImage}
+              resizeMode="contain"
+              onLoad={handleImageLoaded}
+            />
+            {bbox ? (
+              <View
+                pointerEvents="none"
+                style={[
+                  styles.cropBox,
+                  {
+                    left: bbox.x,
+                    top: bbox.y,
+                    width: bbox.width,
+                    height: bbox.height,
+                  },
+                ]}
+              />
+            ) : null}
           </View>
-        ))}
+
+          <View style={styles.actionsRow}>
+            <Text style={styles.helpText}>
+              Arraste para selecionar a area de corte. Depois clique em cortar para gerar nova imagem.
+            </Text>
+            <TouchableOpacity
+              style={[styles.primaryButton, (!bbox || isCropping) && styles.primaryButtonDisabled]}
+              onPress={handleCrop}
+              disabled={!bbox || isCropping}
+            >
+              <Text style={styles.primaryButtonText}>{isCropping ? "Cortando..." : "Cortar"}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : (
+        <Text style={styles.emptyText}>Selecione ou adicione uma imagem para cortar.</Text>
+      )}
+
+      <ScrollView contentContainerStyle={styles.grid}>
+        {items.map((item, idx) => {
+          const active = selectedIdx === idx;
+          return (
+            <TouchableOpacity
+              key={item.key}
+              style={[styles.thumbCard, active && styles.thumbCardActive]}
+              onPress={() => handleSelectThumb(idx)}
+            >
+              <Image source={{ uri: item.uri }} style={styles.thumbnail} />
+              <Text style={styles.thumbLabel} numberOfLines={1}>
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
 
         <TouchableOpacity style={styles.addCard} onPress={handleAddImage}>
           <Text style={styles.addIcon}>+</Text>
