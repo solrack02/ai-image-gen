@@ -17,9 +17,6 @@ import { styles } from "./styles";
 
 const Cutout = () => {
   const generationImages = useData((ct) => ct.system.generation.images || []);
-  const [selectedIdx, setSelectedIdx] = React.useState<number | null>(
-    generationImages.length ? 0 : null
-  );
   const [dragStart, setDragStart] = React.useState<{ x: number; y: number } | null>(null);
   const [bbox, setBbox] = React.useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [displaySize, setDisplaySize] = React.useState<{ width: number; height: number }>({
@@ -31,6 +28,7 @@ const Cutout = () => {
     height: 0,
   });
   const [isCropping, setIsCropping] = React.useState(false);
+  const [selectedBaseId, setSelectedBaseId] = React.useState<string | null>(null);
 
   const items = useMemo(
     () =>
@@ -39,22 +37,40 @@ const Cutout = () => {
         const uri = rawData.startsWith("data:")
           ? rawData
           : `data:image/png;base64,${rawData}`;
+        const id = (img as any)?.id || `img-${idx}`;
+        const parentId = (img as any)?.parentId || null;
+        const isCrop = Boolean(parentId) || (img?.prompt || "").toLowerCase().includes("crop");
         return {
           key: `img-${idx}`,
+          id,
           uri,
           label: img?.prompt || `Imagem ${idx + 1}`,
           raw: rawData,
+          parentId,
+          isCrop,
         };
       }),
     [generationImages]
   );
 
   const croppedItems = useMemo(
-    () => items.filter((item) => item.label.toLowerCase().includes("crop")),
-    [items]
+    () => items.filter((item) => item.isCrop && item.parentId === selectedBaseId),
+    [items, selectedBaseId]
   );
 
-  const selectedItem = selectedIdx != null ? items[selectedIdx] : null;
+  const baseItems = useMemo(() => items.filter((item) => !item.isCrop), [items]);
+
+  const firstBaseId = useMemo(() => baseItems[0]?.id || null, [baseItems]);
+
+  useEffect(() => {
+    if (selectedBaseId || !firstBaseId) return;
+    setSelectedBaseId(firstBaseId);
+  }, [selectedBaseId, firstBaseId]);
+
+  const selectedItem = useMemo(
+    () => items.find((item) => item.id === selectedBaseId) || null,
+    [items, selectedBaseId]
+  );
 
   useEffect(() => {
     const uri = selectedItem?.uri;
@@ -139,20 +155,22 @@ const Cutout = () => {
         return;
       }
       const importedImage = asset.base64;
+      const newId = `img-${Date.now()}`;
       setData((ct) => {
         const prev = ct.system.generation.images || [];
         ct.system.generation.images = [
           ...prev,
-          { data: importedImage, prompt: "Importado" },
+          { id: newId, data: importedImage, prompt: "Importado" },
         ];
       });
+      setSelectedBaseId(newId);
     } catch (error) {
       console.error("Falha ao selecionar imagem", error);
     }
   }, []);
 
-  const handleSelectThumb = (idx: number) => {
-    setSelectedIdx(idx);
+  const handleSelectThumb = (id: string) => {
+    setSelectedBaseId(id);
     resetBbox();
   };
 
@@ -281,7 +299,12 @@ const Cutout = () => {
           const prev = ct.system.generation.images || [];
           ct.system.generation.images = [
             ...prev,
-            { data: croppedBase64, prompt: `${selectedItem.label} | Crop` },
+            {
+              id: `crop-${Date.now()}`,
+              data: croppedBase64,
+              prompt: `${selectedItem.label} | Crop`,
+              parentId: selectedItem.id,
+            },
           ];
         });
       } else {
@@ -372,13 +395,13 @@ const Cutout = () => {
       )}
 
       <ScrollView contentContainerStyle={styles.grid}>
-        {items.map((item, idx) => {
-          const active = selectedIdx === idx;
+        {baseItems.map((item) => {
+          const active = selectedItem?.id === item.id;
           return (
             <TouchableOpacity
               key={item.key}
               style={[styles.thumbCard, active && styles.thumbCardActive]}
-              onPress={() => handleSelectThumb(idx)}
+              onPress={() => handleSelectThumb(item.id)}
             >
               <Image source={{ uri: item.uri }} style={styles.thumbnail} />
               <Text style={styles.thumbLabel} numberOfLines={1}>
