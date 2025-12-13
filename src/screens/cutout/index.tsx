@@ -1,7 +1,7 @@
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as FileSystem from "expo-file-system";
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   ScrollView,
   Text,
@@ -17,6 +17,7 @@ import { styles } from "./styles";
 
 const Cutout = () => {
   const generationImages = useData((ct) => ct.system.generation.images || []);
+  const normalizedRef = useRef(false);
   const [dragStart, setDragStart] = React.useState<{ x: number; y: number } | null>(null);
   const [bbox, setBbox] = React.useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [displaySize, setDisplaySize] = React.useState<{ width: number; height: number }>({
@@ -61,6 +62,30 @@ const Cutout = () => {
   const baseItems = useMemo(() => items.filter((item) => !item.isCrop), [items]);
 
   const firstBaseId = useMemo(() => baseItems[0]?.id || null, [baseItems]);
+
+  // Normaliza IDs uma vez para persistir agrupamento entre base e crops
+  useEffect(() => {
+    if (normalizedRef.current) return;
+    const needsId = generationImages.some((img) => !(img as any)?.id);
+    if (!needsId) {
+      normalizedRef.current = true;
+      return;
+    }
+
+    const now = Date.now();
+    setData((ct) => {
+      const list = ct.system.generation.images || [];
+      ct.system.generation.images = list.map((img, idx) => {
+        const existingId = (img as any)?.id;
+        const isCrop =
+          Boolean((img as any)?.parentId) ||
+          (typeof img?.prompt === "string" && img.prompt.toLowerCase().includes("crop"));
+        const newId = existingId || `${isCrop ? "crop" : "base"}-${now}-${idx}`;
+        return { ...img, id: newId, parentId: (img as any)?.parentId || null };
+      });
+    });
+    normalizedRef.current = true;
+  }, [generationImages]);
 
   useEffect(() => {
     if (selectedBaseId || !firstBaseId) return;

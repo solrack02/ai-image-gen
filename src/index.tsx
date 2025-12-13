@@ -18,20 +18,26 @@ const App = () => {
     const key = "fissium_generation";
     if (typeof window === "undefined") return;
 
-    const normalizeImages = (images: any[], promptFallback: string) =>
-      Array.isArray(images)
-        ? images
-            .map((img: any) => {
-              if (typeof img === "string") {
-                return { data: img, prompt: promptFallback };
-              }
-              if (img?.data) {
-                return { data: img.data, prompt: img?.prompt || promptFallback };
-              }
-              return null;
-            })
-            .filter(Boolean) as { data: string; prompt: string }[]
-        : [];
+    const normalizeImages = (images: any[], promptFallback: string) => {
+      if (!Array.isArray(images)) return [];
+      const now = Date.now();
+      return images
+        .map((img: any, idx: number) => {
+          if (typeof img === "string") {
+            return { id: `img-${now}-${idx}`, data: img, prompt: promptFallback, parentId: null };
+          }
+          if (img?.data) {
+            const isCrop =
+              Boolean(img.parentId) ||
+              (typeof img.prompt === "string" && img.prompt.toLowerCase().includes("crop"));
+            const id = img.id || `${isCrop ? "crop" : "img"}-${now}-${idx}`;
+            const parentId = img.parentId || null;
+            return { id, data: img.data, prompt: img?.prompt || promptFallback, parentId };
+          }
+          return null;
+        })
+        .filter(Boolean) as { id: string; data: string; prompt: string; parentId: string | null }[];
+    };
 
     // Hydrate once on load (IndexedDB -> localStorage fallback)
     loadGeneration(key)
