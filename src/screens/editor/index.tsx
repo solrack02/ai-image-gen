@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Navbar from "../../../components/Navbar";
 import { styles } from "./styles";
 
 const mockPreviews = [
@@ -44,7 +45,6 @@ const contentOptions = [
 ];
 
 const Editor = () => {
-  const logoSource = require("../../../assets/logo3.png");
   const generation = useData((ct) => ct.system.generation);
   const [prompt, setPrompt] = useState(generation.prompt || "");
   const [isLoading, setIsLoading] = useState(false);
@@ -178,41 +178,7 @@ const Editor = () => {
 
   return (
     <View style={styles.page}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Image source={logoSource} style={styles.logoImg} />
-          <View>
-            <Text style={styles.screenTitle}>Editor</Text>
-            <Text style={styles.screenSubtitle}>Fissium | AI Studio</Text>
-          </View>
-        </View>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={() => goTo("cutout")}
-          >
-            <Text style={styles.secondaryButtonText}>Cutout</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={() => goTo("rig2D")}
-          >
-            <Text style={styles.secondaryButtonText}>Rig 2D</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.ghostButton}
-            onPress={() => goTo("home")}
-          >
-            <Text style={styles.ghostButtonText}>Galeria</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.primaryButton}
-            // onPress={handleGenerate}
-          >
-            <Text style={styles.primaryButtonText}>Buscar</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+      <Navbar title="Editor" subtitle="Fissium | AI Studio" />
 
       <View style={styles.body}>
         <ScrollView
