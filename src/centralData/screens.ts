@@ -1,4 +1,5 @@
 import Chat from "../screens/chat";
+import Cutout from "../screens/cutout";
 import Editor from "../screens/editor";
 import Home from "../screens/home";
 import Policy from "../screens/policy";
@@ -10,6 +11,7 @@ export const screens = {
   home: Home,
   chat: Chat,
   policy: Policy,
+  cutout: Cutout,
 } as const;
 
 export type RouteName = keyof typeof screens;

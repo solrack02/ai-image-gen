@@ -189,6 +189,12 @@ const Editor = () => {
         <View style={styles.headerActions}>
           <TouchableOpacity
             style={styles.secondaryButton}
+            onPress={() => goTo("cutout")}
+          >
+            <Text style={styles.secondaryButtonText}>Cutout</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.secondaryButton}
             onPress={() => goTo("rig2D")}
           >
             <Text style={styles.secondaryButtonText}>Rig 2D</Text>
