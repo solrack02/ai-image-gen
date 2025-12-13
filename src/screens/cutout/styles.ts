@@ -27,6 +27,11 @@ export const styles = StyleSheet.create({
     padding: 18,
     gap: 10,
   },
+  stageRow: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    gap: 12,
+  },
   previewArea: {
     width: "100%",
     minHeight: 520,
@@ -38,11 +43,50 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
+    flex: 1,
   },
   largeImage: {
     width: "100%",
     height: 640,
     maxHeight: 860,
+  },
+  cropsPanel: {
+    width: 180,
+    maxWidth: 200,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: palette.divider,
+    backgroundColor: "#0b0b0b",
+    padding: 10,
+    gap: 8,
+  },
+  cropsTitle: {
+    fontSize: 12,
+    color: palette.secondaryText,
+    fontFamily: fontSans,
+    fontWeight: "700",
+  },
+  cropsList: {
+    gap: 10,
+  },
+  cropsEmpty: {
+    fontSize: 12,
+    color: palette.secondaryText,
+    fontFamily: fontSans,
+  },
+  cropsItem: {
+    gap: 4,
+  },
+  cropsThumb: {
+    width: "100%",
+    aspectRatio: 1,
+    borderRadius: 8,
+    backgroundColor: palette.canvas,
+  },
+  cropsLabel: {
+    fontSize: 11,
+    color: palette.text,
+    fontFamily: fontSans,
   },
   cropBox: {
     position: "absolute",
